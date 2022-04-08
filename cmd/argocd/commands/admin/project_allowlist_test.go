@@ -7,13 +7,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestProjectAllowListGen(t *testing.T) {
+type MockResourceGetter struct {}
+
+func (_ MockResourceGetter) GetServerResources() []*metav1.APIResourceList {
 	res := metav1.APIResource{
 		Name: "services",
 		Kind: "Service",
 	}
-	resourceList := []*metav1.APIResourceList{{APIResources: []metav1.APIResource{res}}}
+	return []*metav1.APIResourceList{{APIResources: []metav1.APIResource{res}}}
+}
 
-	globalProj := generateProjectAllowList(resourceList, "testdata/test_clusterrole.yaml", "testproj")
+func TestProjectAllowListGen(t *testing.T) {
+	globalProj := generateProjectAllowList(MockResourceGetter{}, "testdata/test_clusterrole.yaml", "testproj")
 	assert.True(t, len(globalProj.Spec.NamespaceResourceWhitelist) > 0)
 }

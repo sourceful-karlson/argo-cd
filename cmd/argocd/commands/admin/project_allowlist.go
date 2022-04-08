@@ -63,13 +63,7 @@ func NewProjectAllowListGenCommand() *cobra.Command {
 				}()
 			}
 
-			config, err := clientConfig.ClientConfig()
-			errors.CheckError(err)
-			disco, err := discovery.NewDiscoveryClientForConfig(config)
-			errors.CheckError(err)
-			serverResources, err := disco.ServerPreferredResources()
-			errors.CheckError(err)
-			globalProj := generateProjectAllowList(serverResources, clusterRoleFileName, projName)
+			globalProj := generateProjectAllowList(ClientConfigResourceGetter{ClientConfig: clientConfig}, clusterRoleFileName, projName)
 
 			yamlBytes, err := yaml.Marshal(globalProj)
 			errors.CheckError(err)
@@ -84,7 +78,26 @@ func NewProjectAllowListGenCommand() *cobra.Command {
 	return command
 }
 
-func generateProjectAllowList(serverResources []*metav1.APIResourceList, clusterRoleFileName string, projName string) v1alpha1.AppProject {
+type ResourceGetter interface {
+	GetServerResources() []*metav1.APIResourceList
+}
+
+type ClientConfigResourceGetter struct {
+	ClientConfig clientcmd.ClientConfig
+}
+
+func (c ClientConfigResourceGetter) GetServerResources() []*metav1.APIResourceList {
+	config, err := c.ClientConfig.ClientConfig()
+	errors.CheckError(err)
+	disco, err := discovery.NewDiscoveryClientForConfig(config)
+	errors.CheckError(err)
+	serverResources, err := disco.ServerPreferredResources()
+	errors.CheckError(err)
+	return serverResources
+}
+
+func generateProjectAllowList(resourceGetter ResourceGetter, clusterRoleFileName string, projName string) v1alpha1.AppProject {
+	serverResources := resourceGetter.GetServerResources()
 	yamlBytes, err := ioutil.ReadFile(clusterRoleFileName)
 	errors.CheckError(err)
 	var obj unstructured.Unstructured
