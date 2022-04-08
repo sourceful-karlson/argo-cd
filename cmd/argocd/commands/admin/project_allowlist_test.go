@@ -9,12 +9,12 @@ import (
 
 type MockResourceGetter struct {}
 
-func (_ MockResourceGetter) GetServerResources() []*metav1.APIResourceList {
+func (_ MockResourceGetter) GetServerResources() ([]*metav1.APIResourceList, error) {
 	res := metav1.APIResource{
 		Name: "services",
 		Kind: "Service",
 	}
-	return []*metav1.APIResourceList{{APIResources: []metav1.APIResource{res}}}
+	return []*metav1.APIResourceList{{APIResources: []metav1.APIResource{res}}}, nil
 }
 
 func TestProjectAllowListGen(t *testing.T) {

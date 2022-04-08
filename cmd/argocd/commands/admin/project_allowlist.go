@@ -79,25 +79,24 @@ func NewProjectAllowListGenCommand() *cobra.Command {
 }
 
 type ResourceGetter interface {
-	GetServerResources() []*metav1.APIResourceList
+	GetServerResources() ([]*metav1.APIResourceList, error)
 }
 
 type ClientConfigResourceGetter struct {
 	ClientConfig clientcmd.ClientConfig
 }
 
-func (c ClientConfigResourceGetter) GetServerResources() []*metav1.APIResourceList {
+func (c ClientConfigResourceGetter) GetServerResources() ([]*metav1.APIResourceList, error) {
 	config, err := c.ClientConfig.ClientConfig()
 	errors.CheckError(err)
 	disco, err := discovery.NewDiscoveryClientForConfig(config)
 	errors.CheckError(err)
-	serverResources, err := disco.ServerPreferredResources()
-	errors.CheckError(err)
-	return serverResources
+	return disco.ServerPreferredResources()
 }
 
 func generateProjectAllowList(resourceGetter ResourceGetter, clusterRoleFileName string, projName string) v1alpha1.AppProject {
-	serverResources := resourceGetter.GetServerResources()
+	serverResources, err := resourceGetter.GetServerResources()
+	errors.CheckError(err)
 	yamlBytes, err := ioutil.ReadFile(clusterRoleFileName)
 	errors.CheckError(err)
 	var obj unstructured.Unstructured
