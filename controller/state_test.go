@@ -37,7 +37,7 @@ func TestCompareAppStateEmpty(t *testing.T) {
 		managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 	}
 	ctrl := newFakeController(&data)
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 	assert.NotNil(t, compRes)
 	assert.NotNil(t, compRes.syncStatus)
 	assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -60,7 +60,7 @@ func TestCompareAppStateMissing(t *testing.T) {
 		managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 	}
 	ctrl := newFakeController(&data)
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 	assert.NotNil(t, compRes)
 	assert.NotNil(t, compRes.syncStatus)
 	assert.Equal(t, argoappv1.SyncStatusCodeOutOfSync, compRes.syncStatus.Status)
@@ -87,7 +87,7 @@ func TestCompareAppStateExtra(t *testing.T) {
 		},
 	}
 	ctrl := newFakeController(&data)
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 	assert.NotNil(t, compRes)
 	assert.Equal(t, argoappv1.SyncStatusCodeOutOfSync, compRes.syncStatus.Status)
 	assert.Equal(t, 1, len(compRes.resources))
@@ -113,7 +113,7 @@ func TestCompareAppStateHook(t *testing.T) {
 		managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 	}
 	ctrl := newFakeController(&data)
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 	assert.NotNil(t, compRes)
 	assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
 	assert.Equal(t, 0, len(compRes.resources))
@@ -140,7 +140,7 @@ func TestCompareAppStateSkipHook(t *testing.T) {
 		managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 	}
 	ctrl := newFakeController(&data)
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 	assert.NotNil(t, compRes)
 	assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
 	assert.Equal(t, 1, len(compRes.resources))
@@ -166,7 +166,7 @@ func TestCompareAppStateCompareOptionIgnoreExtraneous(t *testing.T) {
 	}
 	ctrl := newFakeController(&data)
 
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 
 	assert.NotNil(t, compRes)
 	assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -194,7 +194,7 @@ func TestCompareAppStateExtraHook(t *testing.T) {
 		},
 	}
 	ctrl := newFakeController(&data)
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 
 	assert.NotNil(t, compRes)
 	assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -237,7 +237,7 @@ func TestCompareAppStateDuplicatedNamespacedResources(t *testing.T) {
 		},
 	}
 	ctrl := newFakeController(&data)
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 
 	assert.NotNil(t, compRes)
 	assert.Equal(t, 1, len(app.Status.Conditions))
@@ -288,7 +288,7 @@ func TestSetHealth(t *testing.T) {
 		},
 	})
 
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 
 	assert.Equal(t, health.HealthStatusHealthy, compRes.healthStatus.Status)
 }
@@ -320,7 +320,7 @@ func TestSetHealthSelfReferencedApp(t *testing.T) {
 		},
 	})
 
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 
 	assert.Equal(t, health.HealthStatusHealthy, compRes.healthStatus.Status)
 }
@@ -390,7 +390,7 @@ func TestReturnUnknownComparisonStateOnSettingLoadError(t *testing.T) {
 		},
 	})
 
-	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+	compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 
 	assert.Equal(t, health.HealthStatusUnknown, compRes.healthStatus.Status)
 	assert.Equal(t, argoappv1.SyncStatusCodeUnknown, compRes.syncStatus.Status)
@@ -527,7 +527,7 @@ func TestSignedResponseNoSignatureRequired(t *testing.T) {
 			managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 		}
 		ctrl := newFakeController(&data)
-		compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+		compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -549,7 +549,7 @@ func TestSignedResponseNoSignatureRequired(t *testing.T) {
 			managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 		}
 		ctrl := newFakeController(&data)
-		compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, false, false, nil)
+		compRes := ctrl.appStateManager.CompareAppState(app, &defaultProj, "", app.Spec.Source, nil, false, false, nil)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -578,7 +578,7 @@ func TestSignedResponseSignatureRequired(t *testing.T) {
 			managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 		}
 		ctrl := newFakeController(&data)
-		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "", app.Spec.Source, false, false, nil)
+		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "", app.Spec.Source, nil, false, false, nil)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -600,7 +600,7 @@ func TestSignedResponseSignatureRequired(t *testing.T) {
 			managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 		}
 		ctrl := newFakeController(&data)
-		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, false, false, nil)
+		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, nil, false, false, nil)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -622,7 +622,7 @@ func TestSignedResponseSignatureRequired(t *testing.T) {
 			managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 		}
 		ctrl := newFakeController(&data)
-		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, false, false, nil)
+		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, nil, false, false, nil)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -644,7 +644,7 @@ func TestSignedResponseSignatureRequired(t *testing.T) {
 			managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 		}
 		ctrl := newFakeController(&data)
-		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, false, false, nil)
+		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, nil, false, false, nil)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -669,7 +669,7 @@ func TestSignedResponseSignatureRequired(t *testing.T) {
 		ctrl := newFakeController(&data)
 		testProj := signedProj
 		testProj.Spec.SignatureKeys[0].KeyID = "4AEE18F83AFDEB24"
-		compRes := ctrl.appStateManager.CompareAppState(app, &testProj, "abc123", app.Spec.Source, false, false, nil)
+		compRes := ctrl.appStateManager.CompareAppState(app, &testProj, "abc123", app.Spec.Source, nil, false, false, nil)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -694,7 +694,7 @@ func TestSignedResponseSignatureRequired(t *testing.T) {
 		// it doesn't matter for our test whether local manifests are valid
 		localManifests := []string{"foobar"}
 		ctrl := newFakeController(&data)
-		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, false, false, localManifests)
+		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, nil, false, false, localManifests)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeUnknown, compRes.syncStatus.Status)
@@ -719,7 +719,7 @@ func TestSignedResponseSignatureRequired(t *testing.T) {
 			managedLiveObjs: make(map[kube.ResourceKey]*unstructured.Unstructured),
 		}
 		ctrl := newFakeController(&data)
-		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, false, false, nil)
+		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, nil, false, false, nil)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)
@@ -744,7 +744,7 @@ func TestSignedResponseSignatureRequired(t *testing.T) {
 		// it doesn't matter for our test whether local manifests are valid
 		localManifests := []string{""}
 		ctrl := newFakeController(&data)
-		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, false, false, localManifests)
+		compRes := ctrl.appStateManager.CompareAppState(app, &signedProj, "abc123", app.Spec.Source, nil, false, false, localManifests)
 		assert.NotNil(t, compRes)
 		assert.NotNil(t, compRes.syncStatus)
 		assert.Equal(t, argoappv1.SyncStatusCodeSynced, compRes.syncStatus.Status)

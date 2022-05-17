@@ -55,7 +55,7 @@ type Application struct {
 // ApplicationSpec represents desired application state. Contains link to repository with application definition and additional parameters link definition revision.
 type ApplicationSpec struct {
 	// Source is a reference to the location of the application's manifests or chart
-	Source ApplicationSource `json:"source" protobuf:"bytes,1,opt,name=source"`
+	Source ApplicationSource `json:"source,omitempty" protobuf:"bytes,1,opt,name=source"`
 	// Destination is a reference to the target Kubernetes server and namespace
 	Destination ApplicationDestination `json:"destination" protobuf:"bytes,2,name=destination"`
 	// Project is a reference to the project this application belongs to.
@@ -73,6 +73,9 @@ type ApplicationSpec struct {
 	// Increasing will increase the space used to store the history, so we do not recommend increasing it.
 	// Default is 10.
 	RevisionHistoryLimit *int64 `json:"revisionHistoryLimit,omitempty" protobuf:"bytes,7,name=revisionHistoryLimit"`
+
+	// Sources is a reference to the location of the application's manifests or chart
+	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,8,opt,name=sources"`
 }
 
 type TrackingMethod string
@@ -170,6 +173,8 @@ type ApplicationSource struct {
 	Plugin *ApplicationSourcePlugin `json:"plugin,omitempty" protobuf:"bytes,11,opt,name=plugin"`
 	// Chart is a Helm chart name, and must be specified for applications sourced from a Helm repo.
 	Chart string `json:"chart,omitempty" protobuf:"bytes,12,opt,name=chart"`
+	// Ref is reference to another source within sources field
+	Ref string `json:"ref,omitempty" protobuf:"bytes,13,opt,name=ref"`
 }
 
 // AllowsConcurrentProcessing returns true if given application source can be processed concurrently
@@ -630,10 +635,13 @@ type SyncOperation struct {
 	// Source overrides the source definition set in the application.
 	// This is typically set in a Rollback operation and is nil during a Sync operation
 	Source *ApplicationSource `json:"source,omitempty" protobuf:"bytes,7,opt,name=source"`
+	// Source overrides the source definition set in the application.
+	// This is typically set in a Rollback operation and is nil during a Sync operation
+	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,8,opt,name=sources"`
 	// Manifests is an optional field that overrides sync source with a local directory for development
-	Manifests []string `json:"manifests,omitempty" protobuf:"bytes,8,opt,name=manifests"`
+	Manifests []string `json:"manifests,omitempty" protobuf:"bytes,9,opt,name=manifests"`
 	// SyncOptions provide per-sync sync-options, e.g. Validate=false
-	SyncOptions SyncOptions `json:"syncOptions,omitempty" protobuf:"bytes,9,opt,name=syncOptions"`
+	SyncOptions SyncOptions `json:"syncOptions,omitempty" protobuf:"bytes,10,opt,name=syncOptions"`
 }
 
 // IsApplyStrategy returns true if the sync strategy is "apply"
@@ -849,6 +857,8 @@ type SyncOperationResult struct {
 	Revision string `json:"revision" protobuf:"bytes,2,opt,name=revision"`
 	// Source records the application source information of the sync, used for comparing auto-sync
 	Source ApplicationSource `json:"source,omitempty" protobuf:"bytes,3,opt,name=source"`
+	// // Source records the application source information of the sync, used for comparing auto-sync
+	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,4,opt,name=sources"`
 }
 
 // ResourceResult holds the operation result details of a specific resource
@@ -920,6 +930,8 @@ type RevisionHistory struct {
 	Source ApplicationSource `json:"source,omitempty" protobuf:"bytes,6,opt,name=source"`
 	// DeployStartedAt holds the time the sync operation started
 	DeployStartedAt *metav1.Time `json:"deployStartedAt,omitempty" protobuf:"bytes,7,opt,name=deployStartedAt"`
+	// Source is a reference to the application source used for the sync operation
+	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,8,opt,name=sources"`
 }
 
 // ApplicationWatchEvent contains information about application change.
@@ -1002,9 +1014,11 @@ type ApplicationCondition struct {
 // ComparedTo contains application source and target which was used for resources comparison
 type ComparedTo struct {
 	// Source is a reference to the application's source used for comparison
-	Source ApplicationSource `json:"source" protobuf:"bytes,1,opt,name=source"`
+	Source ApplicationSource `json:"source,omitempty" protobuf:"bytes,1,opt,name=source"`
 	// Destination is a reference to the application's destination used for comparison
 	Destination ApplicationDestination `json:"destination" protobuf:"bytes,2,opt,name=destination"`
+	// Sources is a reference to the application's multiple sources used for comparison
+	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,3,opt,name=sources"`
 }
 
 // SyncStatus contains information about the currently observed live and desired states of an application
@@ -2120,7 +2134,6 @@ func (app *Application) IsRefreshRequested() (RefreshType, bool) {
 	if annotations == nil {
 		return refreshType, false
 	}
-
 	typeStr, ok := annotations[AnnotationKeyRefresh]
 	if !ok {
 		return refreshType, false
@@ -2129,7 +2142,6 @@ func (app *Application) IsRefreshRequested() (RefreshType, bool) {
 	if typeStr == string(RefreshTypeHard) {
 		refreshType = RefreshTypeHard
 	}
-
 	return refreshType, true
 }
 

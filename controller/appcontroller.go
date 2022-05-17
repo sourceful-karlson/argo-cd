@@ -415,11 +415,11 @@ func isKnownOrphanedResourceExclusion(key kube.ResourceKey, proj *appv1.AppProje
 
 func (ctrl *ApplicationController) getResourceTree(a *appv1.Application, managedResources []*appv1.ResourceDiff) (*appv1.ApplicationTree, error) {
 	nodes := make([]appv1.ResourceNode, 0)
-
 	proj, err := ctrl.getAppProj(a)
 	if err != nil {
 		return nil, err
 	}
+
 	orphanedNodesMap := make(map[kube.ResourceKey]appv1.ResourceNode)
 	warnOrphaned := true
 	if proj.Spec.OrphanedResources != nil {
@@ -429,7 +429,6 @@ func (ctrl *ApplicationController) getResourceTree(a *appv1.Application, managed
 		}
 		warnOrphaned = proj.Spec.OrphanedResources.IsWarn()
 	}
-
 	for i := range managedResources {
 		managedResource := managedResources[i]
 		delete(orphanedNodesMap, kube.NewResourceKey(managedResource.Group, managedResource.Kind, managedResource.Namespace, managedResource.Name))
@@ -751,6 +750,9 @@ func (ctrl *ApplicationController) Run(ctx context.Context, statusProcessors int
 // needs to be the qualified name of the application, i.e. <namespace>/<name>.
 func (ctrl *ApplicationController) requestAppRefresh(appName string, compareWith *CompareWith, after *time.Duration) {
 	key := ctrl.toAppKey(appName)
+
+	log.Printf("Reached requestAppRefresh")
+
 	if compareWith != nil && after != nil {
 		ctrl.appComparisonTypeRefreshQueue.AddAfter(fmt.Sprintf("%s/%d", key, compareWith), *after)
 	} else {
@@ -1313,7 +1315,6 @@ func (ctrl *ApplicationController) processAppRefreshQueueItem() (processNext boo
 		}
 		ctrl.appRefreshQueue.Done(appKey)
 	}()
-
 	obj, exists, err := ctrl.appInformer.GetIndexer().GetByKey(appKey.(string))
 	if err != nil {
 		log.Errorf("Failed to get application '%s' from informer index: %+v", appKey, err)
@@ -1334,9 +1335,9 @@ func (ctrl *ApplicationController) processAppRefreshQueueItem() (processNext boo
 	if !needRefresh {
 		return
 	}
-
 	app := origApp.DeepCopy()
 	logCtx := log.WithFields(log.Fields{"application": app.QualifiedName()})
+
 	startTime := time.Now()
 	defer func() {
 		reconcileDuration := time.Since(startTime)
@@ -1393,9 +1394,10 @@ func (ctrl *ApplicationController) processAppRefreshQueueItem() (processNext boo
 	if comparisonLevel == CompareWithRecent {
 		revision = app.Status.Sync.Revision
 	}
-
 	now := metav1.Now()
-	compareResult := ctrl.appStateManager.CompareAppState(app, project, revision, app.Spec.Source,
+	// var compareResult *comparisonResult
+
+	compareResult := ctrl.appStateManager.CompareAppState(app, project, revision, app.Spec.Source, app.Spec.Sources,
 		refreshType == appv1.RefreshTypeHard,
 		comparisonLevel == CompareWithLatestForceResolve, localManifests)
 	for k, v := range compareResult.timings {
@@ -1458,32 +1460,44 @@ func (ctrl *ApplicationController) needRefreshAppStatus(app *appv1.Application, 
 	softExpired := app.Status.ReconciledAt == nil || app.Status.ReconciledAt.Add(statusRefreshTimeout).Before(time.Now().UTC())
 	hardExpired := (app.Status.ReconciledAt == nil || app.Status.ReconciledAt.Add(statusHardRefreshTimeout).Before(time.Now().UTC())) && statusHardRefreshTimeout.Seconds() != 0
 
+	log.Printf("needRefreshAppStatus %d", len(app.Spec.Sources))
 	if requestedType, ok := app.IsRefreshRequested(); ok {
 		compareWith = CompareWithLatestForceResolve
 		// user requested app refresh.
 		refreshType = requestedType
 		reason = fmt.Sprintf("%s refresh requested", refreshType)
-	} else if !app.Spec.Source.Equals(app.Status.Sync.ComparedTo.Source) {
-		reason = "spec.source differs"
-		compareWith = CompareWithLatestForceResolve
-	} else if hardExpired || softExpired {
-		// The commented line below mysteriously crashes if app.Status.ReconciledAt is nil
-		// reason = fmt.Sprintf("comparison expired. reconciledAt: %v, expiry: %v", app.Status.ReconciledAt, statusRefreshTimeout)
-		//TODO: find existing Golang bug or create a new one
-		reconciledAtStr := "never"
-		if app.Status.ReconciledAt != nil {
-			reconciledAtStr = app.Status.ReconciledAt.String()
+	} else {
+		if app.Spec.Sources != nil || len(app.Spec.Sources) > 0 {
+			for _, source := range app.Spec.Sources {
+				if source.Equals(app.Status.Sync.ComparedTo.Source) {
+					reason = "one of the source in spec.sources differs"
+					compareWith = CompareWithLatestForceResolve
+					break
+				}
+			}
+		} else if !app.Spec.Source.Equals(app.Status.Sync.ComparedTo.Source) {
+			reason = "spec.source differs"
+			compareWith = CompareWithLatestForceResolve
+
+		} else if hardExpired || softExpired {
+			// The commented line below mysteriously crashes if app.Status.ReconciledAt is nil
+			// reason = fmt.Sprintf("comparison expired. reconciledAt: %v, expiry: %v", app.Status.ReconciledAt, statusRefreshTimeout)
+			//TODO: find existing Golang bug or create a new one
+			reconciledAtStr := "never"
+			if app.Status.ReconciledAt != nil {
+				reconciledAtStr = app.Status.ReconciledAt.String()
+			}
+			reason = fmt.Sprintf("comparison expired, requesting refresh. reconciledAt: %v, expiry: %v", reconciledAtStr, statusRefreshTimeout)
+			if hardExpired {
+				reason = fmt.Sprintf("comparison expired, requesting hard refresh. reconciledAt: %v, expiry: %v", reconciledAtStr, statusHardRefreshTimeout)
+				refreshType = appv1.RefreshTypeHard
+			}
+		} else if !app.Spec.Destination.Equals(app.Status.Sync.ComparedTo.Destination) {
+			reason = "spec.destination differs"
+		} else if requested, level := ctrl.isRefreshRequested(app.QualifiedName()); requested {
+			compareWith = level
+			reason = "controller refresh requested"
 		}
-		reason = fmt.Sprintf("comparison expired, requesting refresh. reconciledAt: %v, expiry: %v", reconciledAtStr, statusRefreshTimeout)
-		if hardExpired {
-			reason = fmt.Sprintf("comparison expired, requesting hard refresh. reconciledAt: %v, expiry: %v", reconciledAtStr, statusHardRefreshTimeout)
-			refreshType = appv1.RefreshTypeHard
-		}
-	} else if !app.Spec.Destination.Equals(app.Status.Sync.ComparedTo.Destination) {
-		reason = "spec.destination differs"
-	} else if requested, level := ctrl.isRefreshRequested(app.QualifiedName()); requested {
-		compareWith = level
-		reason = "controller refresh requested"
 	}
 
 	if reason != "" {
@@ -1530,7 +1544,9 @@ func (ctrl *ApplicationController) refreshAppConditions(app *appv1.Application) 
 func (ctrl *ApplicationController) normalizeApplication(orig, app *appv1.Application) {
 	logCtx := log.WithFields(log.Fields{"application": app.QualifiedName()})
 	app.Spec = *argo.NormalizeApplicationSpec(&app.Spec)
+
 	patch, modified, err := diff.CreateTwoWayMergePatch(orig, app, appv1.Application{})
+
 	if err != nil {
 		logCtx.Errorf("error constructing app spec patch: %v", err)
 	} else if modified {
