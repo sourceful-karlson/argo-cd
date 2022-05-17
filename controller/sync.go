@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	cdcommon "github.com/argoproj/argo-cd/v2/common"
 	"os"
 	"strconv"
 	"sync/atomic"
 	"time"
+
+	cdcommon "github.com/argoproj/argo-cd/v2/common"
 
 	"github.com/argoproj/gitops-engine/pkg/sync"
 	"github.com/argoproj/gitops-engine/pkg/sync/common"
