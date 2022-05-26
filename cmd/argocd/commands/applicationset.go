@@ -12,7 +12,7 @@ import (
 var (
 	appSetExample = templates.Examples(`
 	# List all the applications.
-	argocd apps list
+	argocd appsets list
 	`)
 )
 
@@ -36,12 +36,15 @@ func NewAppSetCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 
 // NewApplicationCreateCommand returns a new instance of an `argocd appset create` command
 func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
-	var ()
+	var (
+		fileURL string
+	)
 	var command = &cobra.Command{
 		Use:   "create ApplicationSet",
-		Short: "Create an applicationset",
+		Short: "Create an ApplicationSet",
 		Example: `
-	# Create a directory app
+		# Create the above ApplicationSet
+		argocd appset create cluster-addons.yaml
 	
 `,
 		Run: func(c *cobra.Command, args []string) {
@@ -49,6 +52,7 @@ func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cob
 			os.Exit(1)
 		},
 	}
+	command.Flags().StringVarP(&fileURL, "file", "f", "", "Filename or URL to Kubernetes manifests for the ApplicationSet")
 
 	return command
 }
@@ -60,7 +64,7 @@ func NewApplicationSetListCommand(clientOpts *argocdclient.ClientOptions) *cobra
 		Use:   "list",
 		Short: "list of applicationSet",
 		Example: `  # List all apps
-  argocd app list`,
+  argocd appset list`,
 		Run: func(c *cobra.Command, args []string) {
 			c.HelpFunc()(c, args)
 			os.Exit(1)

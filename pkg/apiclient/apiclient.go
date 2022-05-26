@@ -34,6 +34,8 @@ import (
 	"github.com/argoproj/argo-cd/v2/common"
 	accountpkg "github.com/argoproj/argo-cd/v2/pkg/apiclient/account"
 	applicationpkg "github.com/argoproj/argo-cd/v2/pkg/apiclient/application"
+
+	// applicationsetpkg "github.com/argoproj/argo-cd/v2/pkg/apiclient/applicationset"
 	certificatepkg "github.com/argoproj/argo-cd/v2/pkg/apiclient/certificate"
 	clusterpkg "github.com/argoproj/argo-cd/v2/pkg/apiclient/cluster"
 	gpgkeypkg "github.com/argoproj/argo-cd/v2/pkg/apiclient/gpgkey"
@@ -86,6 +88,7 @@ type Client interface {
 	NewGPGKeyClient() (io.Closer, gpgkeypkg.GPGKeyServiceClient, error)
 	NewGPGKeyClientOrDie() (io.Closer, gpgkeypkg.GPGKeyServiceClient)
 	NewApplicationClient() (io.Closer, applicationpkg.ApplicationServiceClient, error)
+	// NewApplicationSetClient() (io.Closer, applicationsetpkg.ApplicationSetServiceClient, error)
 	NewApplicationClientOrDie() (io.Closer, applicationpkg.ApplicationServiceClient)
 	NewSessionClient() (io.Closer, sessionpkg.SessionServiceClient, error)
 	NewSessionClientOrDie() (io.Closer, sessionpkg.SessionServiceClient)
@@ -667,6 +670,15 @@ func (c *client) NewApplicationClient() (io.Closer, applicationpkg.ApplicationSe
 	appIf := applicationpkg.NewApplicationServiceClient(conn)
 	return closer, appIf, nil
 }
+
+// func (c *client) NewApplicationSetClient() (io.Closer, applicationsetpkg.ApplicationSetServiceClient, error) {
+// 	conn, closer, err := c.newConn()
+// 	if err != nil {
+// 		return nil, nil, err
+// 	}
+// 	appIf := applicationsetpkg.NewApplicationSetServiceClient(conn)
+// 	return closer, appIf, nil
+// }
 
 func (c *client) NewApplicationClientOrDie() (io.Closer, applicationpkg.ApplicationServiceClient) {
 	conn, repoIf, err := c.NewApplicationClient()
