@@ -1,12 +1,19 @@
-## argocd
+## argocd applicationset delete
 
-argocd controls a Argo CD server
+Delete an applicationSet
 
 ```
-argocd [flags]
+argocd applicationset delete ApplicationSet [flags]
 ```
 
 ### Options
+
+```
+      --applicationset-name string    (default "foreground")
+  -h, --help                         help for delete
+```
+
+### Options inherited from parent commands
 
 ```
       --auth-token string               Authentication token
@@ -17,7 +24,6 @@ argocd [flags]
       --grpc-web                        Enables gRPC-web protocol. Useful if Argo CD server is behind proxy which does not support HTTP2.
       --grpc-web-root-path string       Enables gRPC-web protocol. Useful if Argo CD server is behind proxy which does not support HTTP2. Set web root.
   -H, --header strings                  Sets additional header to all requests made by Argo CD CLI. (Can be repeated multiple times to add multiple headers, also supports comma separated headers)
-  -h, --help                            help for argocd
       --http-retry-max int              Maximum number of retries to establish http connection to Argo CD server
       --insecure                        Skip server certificate and domain verification
       --kube-context string             Directs the command to the given kube-context
@@ -32,20 +38,5 @@ argocd [flags]
 
 ### SEE ALSO
 
-* [argocd account](argocd_account.md)	 - Manage account settings
-* [argocd admin](argocd_admin.md)	 - Contains a set of commands useful for Argo CD administrators and requires direct Kubernetes access
-* [argocd app](argocd_app.md)	 - Manage applications
 * [argocd applicationset](argocd_applicationset.md)	 - Manage applicationsets
-* [argocd cert](argocd_cert.md)	 - Manage repository certificates and SSH known hosts entries
-* [argocd cluster](argocd_cluster.md)	 - Manage cluster credentials
-* [argocd completion](argocd_completion.md)	 - output shell completion code for the specified shell (bash or zsh)
-* [argocd context](argocd_context.md)	 - Switch between contexts
-* [argocd gpg](argocd_gpg.md)	 - Manage GPG keys used for signature verification
-* [argocd login](argocd_login.md)	 - Log in to Argo CD
-* [argocd logout](argocd_logout.md)	 - Log out from Argo CD
-* [argocd proj](argocd_proj.md)	 - Manage projects
-* [argocd relogin](argocd_relogin.md)	 - Refresh an expired authenticate token
-* [argocd repo](argocd_repo.md)	 - Manage repository connection parameters
-* [argocd repocreds](argocd_repocreds.md)	 - Manage repository connection parameters
-* [argocd version](argocd_version.md)	 - Print version information
 
