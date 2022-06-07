@@ -19,8 +19,7 @@ argocd applicationset create ApplicationSet [flags]
 ### Options
 
 ```
-  -f, --file string   Filename or URL to Kubernetes manifests for the ApplicationSet
-  -h, --help          help for create
+  -h, --help   help for create
 ```
 
 ### Options inherited from parent commands

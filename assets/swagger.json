@@ -6289,6 +6289,9 @@
         "github": {
           "$ref": "#/definitions/v1alpha1PullRequestGeneratorGithub"
         },
+        "gitlab": {
+          "$ref": "#/definitions/v1alpha1PullRequestGeneratorGitLab"
+        },
         "requeueAfterSeconds": {
           "description": "Standard parameters.",
           "type": "string",
@@ -6326,6 +6329,30 @@
       "properties": {
         "branchMatch": {
           "type": "string"
+        }
+      }
+    },
+    "v1alpha1PullRequestGeneratorGitLab": {
+      "description": "PullRequestGeneratorGitLab defines connection info specific to GitLab.",
+      "type": "object",
+      "properties": {
+        "api": {
+          "description": "The GitLab API URL to talk to. If blank, uses https://gitlab.com/.",
+          "type": "string"
+        },
+        "labels": {
+          "type": "array",
+          "title": "Labels is used to filter the MRs that you want to target",
+          "items": {
+            "type": "string"
+          }
+        },
+        "project": {
+          "description": "GitLab project to scan. Required.",
+          "type": "string"
+        },
+        "tokenRef": {
+          "$ref": "#/definitions/v1alpha1SecretRef"
         }
       }
     },

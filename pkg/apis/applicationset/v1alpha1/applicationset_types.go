@@ -450,15 +450,15 @@ type PullRequestGeneratorGithub struct {
 // PullRequestGeneratorGitLab defines connection info specific to GitLab.
 type PullRequestGeneratorGitLab struct {
 	// GitLab project to scan. Required.
-	Project string `json:"project"`
+	Project string `json:"project" protobuf:"bytes,1,opt,name=project"`
 	// The GitLab API URL to talk to. If blank, uses https://gitlab.com/.
-	API string `json:"api,omitempty"`
+	API string `json:"api,omitempty" protobuf:"bytes,2,opt,name=api"`
 	// Authentication token reference.
-	TokenRef *SecretRef `json:"tokenRef,omitempty"`
+	TokenRef *SecretRef `json:"tokenRef,omitempty" protobuf:"bytes,3,opt,name=tokenRef"`
 	// Labels is used to filter the MRs that you want to target
-	Labels []string `json:"labels,omitempty"`
+	Labels []string `json:"labels,omitempty" protobuf:"bytes,4,rep,name=labels"`
 	// PullRequestState is an additional MRs filter to get only those with a certain state. Default: "" (all states)
-	PullRequestState string `json:"pullRequestState,omitempty"`
+	PullRequestState string `json:"pullRequestState,omitempty" protobuf:"bytes,5,rep,name=pullRequestState"`
 }
 
 // PullRequestGenerator defines connection info specific to BitbucketServer.

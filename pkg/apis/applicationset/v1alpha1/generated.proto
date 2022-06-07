@@ -286,17 +286,19 @@ message PullRequestGenerator {
   // Which provider to use and config for it.
   optional PullRequestGeneratorGithub github = 1;
 
-  optional PullRequestGeneratorGitea gitea = 2;
+  optional PullRequestGeneratorGitLab gitlab = 2;
 
-  optional PullRequestGeneratorBitbucketServer bitbucketServer = 3;
+  optional PullRequestGeneratorGitea gitea = 3;
+
+  optional PullRequestGeneratorBitbucketServer bitbucketServer = 4;
 
   // Filters for which pull requests should be considered.
-  repeated PullRequestGeneratorFilter filters = 4;
+  repeated PullRequestGeneratorFilter filters = 5;
 
   // Standard parameters.
-  optional int64 requeueAfterSeconds = 5;
+  optional int64 requeueAfterSeconds = 6;
 
-  optional ApplicationSetTemplate template = 6;
+  optional ApplicationSetTemplate template = 7;
 }
 
 // PullRequestGenerator defines connection info specific to BitbucketServer.
@@ -319,6 +321,21 @@ message PullRequestGeneratorBitbucketServer {
 // pass for a pull request to be included.
 message PullRequestGeneratorFilter {
   optional string branchMatch = 1;
+}
+
+// PullRequestGeneratorGitLab defines connection info specific to GitLab.
+message PullRequestGeneratorGitLab {
+  // GitLab project to scan. Required.
+  optional string project = 1;
+
+  // The GitLab API URL to talk to. If blank, uses https://gitlab.com/.
+  optional string api = 2;
+
+  // Authentication token reference.
+  optional SecretRef tokenRef = 3;
+
+  // Labels is used to filter the MRs that you want to target
+  repeated string labels = 4;
 }
 
 // PullRequestGenerator defines connection info specific to Gitea.
