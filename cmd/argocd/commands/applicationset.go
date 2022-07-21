@@ -23,16 +23,22 @@ import (
 var (
 	appSetExample = templates.Examples(`
 	# List all the applications.
-	argocd appsets list
+	argocd appset list
+
+	# Create an ApplicationSet
+	argocd appset create "(filename.yaml)"
+
+	# Delete an ApplicationSet
+	argocd appset delete "(applicationset resource name)"
 	`)
 )
 
 // NewAppSetCommand returns a new instance of an `argocd appset` command
 func NewAppSetCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 	var command = &cobra.Command{
-		Use:     "applicationset",
+		Use:     "appset",
 		Short:   "Manage applicationsets",
-		Example: appExample,
+		Example: appSetExample,
 		Run: func(c *cobra.Command, args []string) {
 			c.HelpFunc()(c, args)
 			os.Exit(1)
@@ -52,8 +58,10 @@ func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cob
 		upsert  bool
 	)
 	var command = &cobra.Command{
+		Use:   "create",
 		Short: "Create an ApplicationSet",
 		Example: `
+		argocd appset create <filename>
 `,
 		Run: func(c *cobra.Command, args []string) {
 			argocdClient := headless.NewClientOrDie(clientOpts, c)
@@ -94,8 +102,8 @@ func NewApplicationSetListCommand(clientOpts *argocdclient.ClientOptions) *cobra
 	var command = &cobra.Command{
 		Use:   "list",
 		Short: "list of applicationSet",
-		Example: `  # List all apps
-  			argocd applicationset list`,
+		Example: `  # List all appsets
+  			argocd appset list`,
 		Run: func(c *cobra.Command, args []string) {
 			conn, appIf := headless.NewClientOrDie(clientOpts, c).NewApplicationSetClientOrDie()
 			defer argoio.Close(conn)
@@ -126,7 +134,7 @@ func NewApplicationSetUpdateCommand(clientOpts *argocdclient.ClientOptions) *cob
 		appsetName string
 	)
 	var command = &cobra.Command{
-		Use:   "update ApplicationSet",
+		Use:   "update",
 		Short: "Updates the given applicationSet",
 		Run: func(c *cobra.Command, args []string) {
 			argocdClient := headless.NewClientOrDie(clientOpts, c)
@@ -162,13 +170,29 @@ func NewApplicationSetDeleteCommand(clientOpts *argocdclient.ClientOptions) *cob
 		appsetName string
 	)
 	var command = &cobra.Command{
-		Use:   "delete ApplicationSet",
+		Use:   "delete",
 		Short: "Delete an applicationSet",
 		Run: func(c *cobra.Command, args []string) {
-			c.HelpFunc()(c, args)
-			log.Printf("AppSet Delete command %s", strings.Join(args, " "))
-			log.Printf("ApplicationSet Name %s", appsetName)
-			os.Exit(1)
+			argocdClient := headless.NewClientOrDie(clientOpts, c)
+			fileUrl := args[0]
+			appsets, err := cmdutil.ConstructApplicationSet(fileUrl)
+			errors.CheckError(err)
+
+			for _, appset := range appsets {
+				if appset.Name == "" {
+					c.HelpFunc()(c, args)
+					os.Exit(1)
+				}
+
+				conn, appIf := argocdClient.NewApplicationSetClientOrDie()
+				defer argoio.Close(conn)
+				appSetCreateRequest := applicationset.ApplicationSetUpdateRequest{
+					Applicationset: appset,
+				}
+				created, err := appIf.Update(context.Background(), &appSetCreateRequest)
+				errors.CheckError(err)
+				fmt.Printf("application set '%s' created\n", created.ObjectMeta.Name)
+			}
 		},
 	}
 	command.Flags().StringVar(&appsetName, "applicationset-name", "foreground", "")
@@ -186,12 +210,12 @@ func printApplicationSetNames(apps []arogappsetv1.ApplicationSet) {
 func printApplicationSetTable(apps []arogappsetv1.ApplicationSet, output *string) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	var fmtStr string
-	headers := []interface{}{"NAME", "CLUSTER", "NAMESPACE", "PROJECT", "SYNCPOLICY", "CONDITIONS"}
+	headers := []interface{}{"NAME", "NAMESPACE", "PROJECT", "SYNCPOLICY", "CONDITIONS"}
 	if *output == "wide" {
-		fmtStr = "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"
+		fmtStr = "%s\t%s\t%s\t%s\t%s\n"
 		headers = append(headers, "REPO", "PATH", "TARGET")
 	} else {
-		fmtStr = "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"
+		fmtStr = "%s\t%s\t%s\t%s\t%s\n"
 	}
 	_, _ = fmt.Fprintf(w, fmtStr, headers...)
 	for _, app := range apps {

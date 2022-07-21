@@ -3,6 +3,7 @@ package commands
 import (
 	"testing"
 
+	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	arogappsetv1 "github.com/argoproj/argo-cd/v2/pkg/apis/applicationset/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,7 +45,11 @@ func TestPrintApplicationSetTable(t *testing.T) {
 						},
 					},
 				},
-				Template: arogappsetv1.ApplicationSetTemplate{},
+				Template: arogappsetv1.ApplicationSetTemplate{
+					Spec: v1alpha1.ApplicationSpec{
+						Project: "default",
+					},
+				},
 			},
 			Status: arogappsetv1.ApplicationSetStatus{
 				Conditions: []arogappsetv1.ApplicationSetCondition{
@@ -60,6 +65,6 @@ func TestPrintApplicationSetTable(t *testing.T) {
 		return nil
 	})
 	assert.NoError(t, err)
-	expectation := "NAME      CLUSTER  NAMESPACE  PROJECT  SYNCPOLICY  CONDITIONS                             %!s(MISSING)  %!s(MISSING)\napp-name                               nil         [{ResourcesUpToDate  <nil> Healthy }]  %!s(MISSING)  %!s(MISSING)\napp-name                               nil         [{ResourcesUpToDate  <nil> Healthy }]  %!s(MISSING)  %!s(MISSING)\n"
+	expectation := "NAME      NAMESPACE  PROJECT  SYNCPOLICY  CONDITIONS\napp-name             default  nil         [{ResourcesUpToDate  <nil> Healthy }]\napp-name             default  nil         [{ResourcesUpToDate  <nil> Healthy }]\n"
 	assert.Equal(t, expectation, output)
 }
