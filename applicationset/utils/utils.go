@@ -95,8 +95,9 @@ func (r *Render) Replace(fstTmpl *fasttemplate.Template, replaceMap map[string]s
 }
 
 // Log a warning if there are unrecognized generators
-func CheckInvalidGenerators(applicationSetInfo *argoappsetv1.ApplicationSet) {
+func CheckInvalidGenerators(applicationSetInfo *argoappsetv1.ApplicationSet) error {
 	hasInvalidGenerators, invalidGenerators := invalidGenerators(applicationSetInfo)
+	var errorMessage error
 	if len(invalidGenerators) > 0 {
 		gnames := []string{}
 		for n := range invalidGenerators {
@@ -105,12 +106,15 @@ func CheckInvalidGenerators(applicationSetInfo *argoappsetv1.ApplicationSet) {
 		sort.Strings(gnames)
 		aname := applicationSetInfo.ObjectMeta.Name
 		msg := "ApplicationSet %s contains unrecognized generators: %s"
+		errorMessage = fmt.Errorf(msg, aname, strings.Join(gnames, ", "))
 		log.Warnf(msg, aname, strings.Join(gnames, ", "))
 	} else if hasInvalidGenerators {
 		name := applicationSetInfo.ObjectMeta.Name
 		msg := "ApplicationSet %s contains unrecognized generators"
+		errorMessage = fmt.Errorf(msg, name)
 		log.Warnf(msg, name)
 	}
+	return errorMessage
 }
 
 // Return true if there are unknown generators specified in the application set.  If we can discover the names

@@ -10,7 +10,7 @@ argocd applicationset list [flags]
 
 ```
   # List all apps
-  argocd appset list
+  			argocd applicationset list
 ```
 
 ### Options

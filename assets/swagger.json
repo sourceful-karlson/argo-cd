@@ -3568,16 +3568,16 @@
         }
       }
     },
-    "applicationsetApplicationSetResourceResponse": {
+    "applicationsetApplicationSetResponse": {
       "type": "object",
       "properties": {
-        "manifest": {
+        "applicationset": {
+          "$ref": "#/definitions/v1alpha1ApplicationSet"
+        },
+        "project": {
           "type": "string"
         }
       }
-    },
-    "applicationsetApplicationSetResponse": {
-      "type": "object"
     },
     "applicationv1alpha1EnvEntry": {
       "type": "object",
@@ -6351,6 +6351,10 @@
           "description": "GitLab project to scan. Required.",
           "type": "string"
         },
+        "pullRequestState": {
+          "type": "string",
+          "title": "PullRequestState is an additional MRs filter to get only those with a certain state. Default: \"\" (all states)"
+        },
         "tokenRef": {
           "$ref": "#/definitions/v1alpha1SecretRef"
         }
@@ -7018,6 +7022,9 @@
       "description": "SCMProviderGenerator defines a generator that scrapes a SCMaaS API to find candidate repos.",
       "type": "object",
       "properties": {
+        "azureDevOps": {
+          "$ref": "#/definitions/v1alpha1SCMProviderGeneratorAzureDevOps"
+        },
         "bitbucket": {
           "$ref": "#/definitions/v1alpha1SCMProviderGeneratorBitbucket"
         },
@@ -7051,6 +7058,31 @@
         },
         "template": {
           "$ref": "#/definitions/v1alpha1ApplicationSetTemplate"
+        }
+      }
+    },
+    "v1alpha1SCMProviderGeneratorAzureDevOps": {
+      "description": "SCMProviderGeneratorAzureDevOps defines connection info specific to Azure DevOps.",
+      "type": "object",
+      "properties": {
+        "accessTokenRef": {
+          "$ref": "#/definitions/v1alpha1SecretRef"
+        },
+        "allBranches": {
+          "description": "Scan all branches instead of just the default branch.",
+          "type": "boolean"
+        },
+        "api": {
+          "description": "The URL to Azure DevOps. If blank, use https://dev.azure.com.",
+          "type": "string"
+        },
+        "organization": {
+          "description": "Azure Devops organization. Required. E.g. \"my-organization\".",
+          "type": "string"
+        },
+        "teamProject": {
+          "description": "Azure Devops team project. Required. E.g. \"my-team\".",
+          "type": "string"
         }
       }
     },

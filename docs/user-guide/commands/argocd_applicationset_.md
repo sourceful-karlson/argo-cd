@@ -1,33 +1,22 @@
-## argocd account can-i
+## argocd applicationset 
 
-Can I
+Create an ApplicationSet
 
 ```
-argocd account can-i ACTION RESOURCE SUBRESOURCE [flags]
+argocd applicationset  [flags]
 ```
 
 ### Examples
 
 ```
 
-# Can I sync any app?
-argocd account can-i sync applications '*'
-
-# Can I update a project?
-argocd account can-i update projects 'default'
-
-# Can I create a cluster?
-argocd account can-i create clusters '*'
-
-Actions: [get create update delete sync override]
-Resources: [clusters projects applications applicationset repositories certificates logs exec]
 
 ```
 
 ### Options
 
 ```
-  -h, --help   help for can-i
+  -h, --help   help for this command
 ```
 
 ### Options inherited from parent commands
@@ -55,5 +44,5 @@ Resources: [clusters projects applications applicationset repositories certifica
 
 ### SEE ALSO
 
-* [argocd account](argocd_account.md)	 - Manage account settings
+* [argocd applicationset](argocd_applicationset.md)	 - Manage applicationsets
 

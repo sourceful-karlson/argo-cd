@@ -336,6 +336,9 @@ message PullRequestGeneratorGitLab {
 
   // Labels is used to filter the MRs that you want to target
   repeated string labels = 4;
+
+  // PullRequestState is an additional MRs filter to get only those with a certain state. Default: "" (all states)
+  optional string pullRequestState = 5;
 }
 
 // PullRequestGenerator defines connection info specific to Gitea.
@@ -387,17 +390,37 @@ message SCMProviderGenerator {
 
   optional SCMProviderGeneratorGitea gitea = 5;
 
+  optional SCMProviderGeneratorAzureDevOps azureDevOps = 6;
+
   // Filters for which repos should be considered.
-  repeated SCMProviderGeneratorFilter filters = 6;
+  repeated SCMProviderGeneratorFilter filters = 7;
 
   // Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers
   // necessarily support all protocols.
-  optional string cloneProtocol = 7;
+  optional string cloneProtocol = 8;
 
   // Standard parameters.
-  optional int64 requeueAfterSeconds = 8;
+  optional int64 requeueAfterSeconds = 9;
 
-  optional ApplicationSetTemplate template = 9;
+  optional ApplicationSetTemplate template = 10;
+}
+
+// SCMProviderGeneratorAzureDevOps defines connection info specific to Azure DevOps.
+message SCMProviderGeneratorAzureDevOps {
+  // Azure Devops organization. Required. E.g. "my-organization".
+  optional string organization = 5;
+
+  // The URL to Azure DevOps. If blank, use https://dev.azure.com.
+  optional string api = 6;
+
+  // Azure Devops team project. Required. E.g. "my-team".
+  optional string teamProject = 7;
+
+  // The Personal Access Token (PAT) to use when connecting. Required.
+  optional SecretRef accessTokenRef = 8;
+
+  // Scan all branches instead of just the default branch.
+  optional bool allBranches = 9;
 }
 
 // SCMProviderGeneratorBitbucket defines connection info specific to Bitbucket Cloud (API version 2).

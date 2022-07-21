@@ -366,7 +366,7 @@ func TestCheckInvalidGenerators(t *testing.T) {
 		defer logrus.StandardLogger().ReplaceHooks(oldhooks)
 		hook := logtest.NewGlobal()
 
-		CheckInvalidGenerators(&c.appSet)
+		_ = CheckInvalidGenerators(&c.appSet)
 		assert.True(t, len(hook.Entries) >= 1, c.testName)
 		assert.NotNil(t, hook.LastEntry(), c.testName)
 		if hook.LastEntry() != nil {

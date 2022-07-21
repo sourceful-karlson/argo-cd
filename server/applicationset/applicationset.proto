@@ -11,7 +11,6 @@ import "google/api/annotations.proto";
 import "github.com/argoproj/argo-cd/v2/pkg/apis/applicationset/v1alpha1/generated.proto";
 import "github.com/argoproj/argo-cd/v2/reposerver/repository/repository.proto";
 import "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1/generated.proto";
-import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 
 // ApplicationSetQuery is a query for applicationset resources
 message ApplicationSetQuery {
@@ -29,82 +28,29 @@ message ApplicationSetQuery {
 	string repo = 6;
 }
 
-message NodeQuery {
-	// the applicationset's name
-	string name = 1;
-}
 
-message ApplicationSetRevisionMetadataQuery{
-	// the applicationset's name
-	string name = 1;
-	// the revision of the applicationset
-	string revision = 2;
+message ApplicationSetResponse {
+	string project = 1;
+	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 2;
 }
-
-// ManifestQuery is a query for manifest resources
-message ApplicationSetManifestQuery {
-	string name = 1;
-	string revision = 2;
-}
-
-message ApplicationSetResponse {}
 
 message ApplicationSetCreateRequest {
-	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 1;
-	bool upsert = 2;
-	bool validate = 3;
+	string filePath = 1;
+	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 2;
+	bool upsert = 3;
+	bool validate = 4;
 }
 
 message ApplicationSetUpdateRequest {
-	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 1;
-	bool validate = 2;
+	string filePath = 1;
+	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 2;
+	bool validate = 3;
 }
 
 message ApplicationSetDeleteRequest {
 	string name = 1;
 	bool cascade = 2;
 	string propagationPolicy = 3;
-}
-
-// ApplicationSetUpdateSpecRequest is a request to update applicationset spec
-message ApplicationSetUpdateSpecRequest {
-	string name = 1;
-	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSetSpec spec = 2;
-	bool validate = 3;
-}
-
-// ApplicationSetPatchRequest is a request to patch an applicationset
-message ApplicationSetPatchRequest {
-	string name = 1;
-	string patch = 2;
-	string patchType = 3;
-}
-
-message ApplicationSetRollbackRequest {
-	string name = 1;
-	int64 id = 2;
-	bool dryRun = 3;
-	bool prune = 4;
-}
-
-message ApplicationSetResourceRequest {
-	string name = 1;
-	string namespace = 2;
-	string resourceName = 3;
-	string version = 4;
-	string group = 5;
-	string kind = 6;
-}
-
-message ApplicationSetResourcePatchRequest {
-	string name = 1;
-	string namespace = 2;
-	string resourceName = 3;
-	string version = 4;
-	string group = 5;
-	string kind = 6;
-	string patch = 7;
-	string patchType = 8;
 }
 
 message ApplicationSetResourceDeleteRequest {
@@ -118,119 +64,28 @@ message ApplicationSetResourceDeleteRequest {
 	bool orphan = 8;
 }
 
-message ApplicationSetResourceActionRunRequest {
-	string name = 1;
-	string namespace = 2;
-	string resourceName = 3;
-	string version = 4;
-	string group = 5;
-	string kind = 6;
-	string action = 7;
-}
-
-
-message ApplicationSetResourceResponse {
-	string manifest = 1;
-}
-
-
-message ApplicationSetResourcesQuery {
-	string applicationsetName = 1;
-	string namespace = 2;
-	string name = 3;
-	string version = 4;
-	string group = 5;
-	string kind = 6;
-}
-
 
 // ApplicationSetService
 service ApplicationSetService {
-
+	
 	//List returns list of applications
-	rpc List(ApplicationSetQuery) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSetList) {
-		// option (google.api.http).get = "/api/v1/applicationsets";
+	rpc List (ApplicationSetQuery) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSetList) {
 	}
 
 	//Create creates an applicationset
 	rpc Create (ApplicationSetCreateRequest) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
-		// option (google.api.http) = {
-		// 	post: "/api/v1/applicationsets"
-		// 	body: "applicationset"
-		// };
 	}
 
 	//Get returns an applicationset by name
 	rpc Get (ApplicationSetQuery) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
-		// option (google.api.http).get = "/api/v1/applicationsets/{name}";
-	}
-
-
-	// GetManifests returns applicationset manifests
-	rpc GetManifests (ApplicationSetManifestQuery) returns (repository.ManifestResponse) {
-		// option (google.api.http).get = "/api/v1/applicationsets/{name}/manifests";
 	}
 
 	// Update updates an applicationset
 	rpc Update(ApplicationSetUpdateRequest) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
-		// option (google.api.http) = {
-		// 	put: "/api/v1/applications/{applicationset.metadata.name}"
-		// 	body: "applicationset"
-		// };
-	}
-
-	// UpdateSpec updates an applicationset spec
-	rpc UpdateSpec(ApplicationSetUpdateSpecRequest) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSetSpec) {
-		// option (google.api.http) = {
-		// 	put: "/api/v1/applicationsets/{name}/spec"
-		// 	body: "spec"
-		// };
-	}
-
-	// Patch patch an application
-	rpc Patch(ApplicationSetPatchRequest) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
-		// option (google.api.http) = {
-		// 	patch: "/api/v1/applicationsets/{name}"
-		// 	body: "*"
-		// };
 	}
 
 	// Delete deletes an application set
 	rpc Delete(ApplicationSetDeleteRequest) returns (ApplicationSetResponse) {
-		// option (google.api.http).delete = "/api/v1/applicationsets/{name}";
 	}
 
-	//Rollback syncs an applicationset to its target state
-	rpc Rollback(ApplicationSetRollbackRequest) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
-		// option (google.api.http) = {
-		// 	post: "/api/v1/applicationsets/{name}/rollback"
-		// 	body: "*"
-		// };
-	}
-
-	// GetResource returns single application resource
-	rpc GetResource(ApplicationSetResourceRequest) returns (ApplicationSetResourceResponse) {
-		// option (google.api.http).get = "/api/v1/applicationsets/{name}/resource";
-	}
-
-	// PatchResource patch single application resource
-	rpc PatchResource(ApplicationSetResourcePatchRequest) returns (ApplicationSetResourceResponse) {
-		// option (google.api.http) = {
-		// 	post: "/api/v1/applicationsets/{name}/resource"
-		// 	body: "patch"
-		// };
-	}
-
-	// RunResourceAction run resource action
-	rpc RunResourceAction(ApplicationSetResourceActionRunRequest) returns (ApplicationSetResponse) {
-		// option (google.api.http) = {
-		// 	post: "/api/v1/applicationsets/{name}/resource/actions"
-		// 	body: "action"
-		// };
-	}
-
-	// DeleteResource deletes a single application resource
-	rpc DeleteResource(ApplicationSetResourceDeleteRequest) returns (ApplicationSetResponse) {
-		// option (google.api.http).delete = "/api/v1/applicationsets/{name}/resource";
-	}
 }

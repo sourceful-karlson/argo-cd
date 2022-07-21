@@ -92,7 +92,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Log a warning if there are unrecognized generators
-	utils.CheckInvalidGenerators(&applicationSetInfo)
+	_ = utils.CheckInvalidGenerators(&applicationSetInfo)
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
 	desiredApplications, applicationSetReason, err := r.generateApplications(applicationSetInfo)
 	if err != nil {

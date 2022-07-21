@@ -378,15 +378,15 @@ type SCMProviderGeneratorBitbucketServer struct {
 // SCMProviderGeneratorAzureDevOps defines connection info specific to Azure DevOps.
 type SCMProviderGeneratorAzureDevOps struct {
 	// Azure Devops organization. Required. E.g. "my-organization".
-	Organization string `json:"organization"`
+	Organization string `json:"organization" protobuf:"bytes,5,opt,name=organization"`
 	// The URL to Azure DevOps. If blank, use https://dev.azure.com.
-	API string `json:"api,omitempty"`
+	API string `json:"api,omitempty" protobuf:"bytes,6,opt,name=api"`
 	// Azure Devops team project. Required. E.g. "my-team".
-	TeamProject string `json:"teamProject"`
+	TeamProject string `json:"teamProject" protobuf:"bytes,7,opt,name=teamProject"`
 	// The Personal Access Token (PAT) to use when connecting. Required.
-	AccessTokenRef *SecretRef `json:"accessTokenRef"`
+	AccessTokenRef *SecretRef `json:"accessTokenRef" protobuf:"bytes,8,opt,name=accessTokenRef"`
 	// Scan all branches instead of just the default branch.
-	AllBranches bool `json:"allBranches,omitempty"`
+	AllBranches bool `json:"allBranches,omitempty" protobuf:"varint,9,opt,name=allBranches"`
 }
 
 // SCMProviderGeneratorFilter is a single repository filter.
