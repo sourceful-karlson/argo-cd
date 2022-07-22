@@ -74,6 +74,7 @@ import (
 	appclientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned"
 	appinformer "github.com/argoproj/argo-cd/v2/pkg/client/informers/externalversions"
 	applisters "github.com/argoproj/argo-cd/v2/pkg/client/listers/application/v1alpha1"
+	appsetlisters "github.com/argoproj/argo-cd/v2/pkg/client/listers/applicationset/v1alpha1"
 	repoapiclient "github.com/argoproj/argo-cd/v2/reposerver/apiclient"
 	repocache "github.com/argoproj/argo-cd/v2/reposerver/cache"
 	"github.com/argoproj/argo-cd/v2/server/account"
@@ -171,6 +172,8 @@ type ArgoCDServer struct {
 	policyEnforcer *rbacpolicy.RBACPolicyEnforcer
 	appInformer    cache.SharedIndexInformer
 	appLister      applisters.ApplicationNamespaceLister
+	appsetInformer cache.SharedIndexInformer
+	appsetLister   appsetlisters.ApplicationSetNamespaceLister
 	db             db.ArgoDB
 
 	// stopCh is the channel which when closed, will shutdown the Argo CD server
@@ -241,6 +244,9 @@ func NewServer(ctx context.Context, opts ArgoCDServerOpts) *ArgoCDServer {
 	appInformer := factory.Argoproj().V1alpha1().Applications().Informer()
 	appLister := factory.Argoproj().V1alpha1().Applications().Lister().Applications(opts.Namespace)
 
+	appsetInformer := factory.Applicationset().V1alpha1().ApplicationSets().Informer()
+	appsetLister := factory.Applicationset().V1alpha1().ApplicationSets().Lister().ApplicationSets(opts.Namespace)
+
 	userStateStorage := util_session.NewUserStateStorage(opts.RedisClient)
 	sessionMgr := util_session.NewSessionManager(settingsMgr, projLister, opts.DexServerAddr, opts.DexTLSConfig, userStateStorage)
 	enf := rbac.NewEnforcer(opts.KubeClientset, opts.Namespace, common.ArgoCDRBACConfigMapName, nil)
@@ -268,6 +274,8 @@ func NewServer(ctx context.Context, opts ArgoCDServerOpts) *ArgoCDServer {
 		projLister:       projLister,
 		appInformer:      appInformer,
 		appLister:        appLister,
+		appsetInformer:   appsetInformer,
+		appsetLister:     appsetLister,
 		policyEnforcer:   policyEnf,
 		userStateStorage: userStateStorage,
 		staticAssets:     http.FS(staticFS),
@@ -692,7 +700,7 @@ func (a *ArgoCDServer) newGRPCServer() (*grpc.Server, application.AppResourceTre
 		a.settingsMgr,
 		a.projInformer)
 
-	applicationSetService := applicationset.NewServer(a.db, a.enf, a.Cache, a.AppClientset, a.appLister, a.projLister, a.settingsMgr, a.Namespace, projectLock)
+	applicationSetService := applicationset.NewServer(a.db, a.KubeClientset, a.enf, a.Cache, a.AppClientset, a.appLister, a.appsetInformer, a.appsetLister, a.projLister, a.settingsMgr, a.Namespace, projectLock)
 	projectService := project.NewServer(a.Namespace, a.KubeClientset, a.AppClientset, a.enf, projectLock, a.sessionMgr, a.policyEnforcer, a.projInformer, a.settingsMgr, a.db)
 	settingsService := settings.NewServer(a.settingsMgr, a, a.DisableAuth)
 	accountService := account.NewServer(a.sessionMgr, a.settingsMgr, a.enf)

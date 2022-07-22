@@ -321,7 +321,7 @@ func fakeAppWithMergeAndPullRequestGenerator(name, namespace, owner, repo string
 
 func newFakeClient(ns string) *kubefake.Clientset {
 	s := runtime.NewScheme()
-	s.AddKnownTypes(argoprojiov1alpha1.GroupVersion, &argoprojiov1alpha1.ApplicationSet{})
+	s.AddKnownTypes(argoprojiov1alpha1.SchemeGroupVersion, &argoprojiov1alpha1.ApplicationSet{})
 	return kubefake.NewSimpleClientset(&corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "argocd-cm", Namespace: ns, Labels: map[string]string{
 		"app.kubernetes.io/part-of": "argocd",
 	}}}, &v1.Secret{

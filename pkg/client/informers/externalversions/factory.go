@@ -9,6 +9,7 @@ import (
 
 	versioned "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned"
 	application "github.com/argoproj/argo-cd/v2/pkg/client/informers/externalversions/application"
+	applicationset "github.com/argoproj/argo-cd/v2/pkg/client/informers/externalversions/applicationset"
 	internalinterfaces "github.com/argoproj/argo-cd/v2/pkg/client/informers/externalversions/internalinterfaces"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -157,8 +158,13 @@ type SharedInformerFactory interface {
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
 	Argoproj() application.Interface
+	Applicationset() applicationset.Interface
 }
 
 func (f *sharedInformerFactory) Argoproj() application.Interface {
 	return application.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) Applicationset() applicationset.Interface {
+	return applicationset.New(f, f.namespace, f.tweakListOptions)
 }

@@ -9,8 +9,7 @@ argocd appset update [flags]
 ### Options
 
 ```
-      --appset-name string   Name of the appset (default "/")
-  -h, --help                 help for update
+  -h, --help   help for update
 ```
 
 ### Options inherited from parent commands

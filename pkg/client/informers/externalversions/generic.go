@@ -5,7 +5,8 @@ package externalversions
 import (
 	"fmt"
 
-	v1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	applicationv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	v1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/applicationset/v1alpha1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )
@@ -36,10 +37,14 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=argoproj.io, Version=v1alpha1
-	case v1alpha1.SchemeGroupVersion.WithResource("appprojects"):
+	// Group=applicationset.argoproj.io, Version=v1alpha1
+	case v1alpha1.SchemeGroupVersion.WithResource("applicationsets"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Applicationset().V1alpha1().ApplicationSets().Informer()}, nil
+
+		// Group=argoproj.io, Version=v1alpha1
+	case applicationv1alpha1.SchemeGroupVersion.WithResource("appprojects"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Argoproj().V1alpha1().AppProjects().Informer()}, nil
-	case v1alpha1.SchemeGroupVersion.WithResource("applications"):
+	case applicationv1alpha1.SchemeGroupVersion.WithResource("applications"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Argoproj().V1alpha1().Applications().Informer()}, nil
 
 	}

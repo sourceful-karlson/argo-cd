@@ -6,11 +6,20 @@ Delete an applicationSet
 argocd appset delete [flags]
 ```
 
+### Examples
+
+```
+  
+			# Delete an applicationset
+			argocd appset delete APPNAME
+		
+```
+
 ### Options
 
 ```
-      --applicationset-name string    (default "foreground")
-  -h, --help                         help for delete
+  -h, --help   help for delete
+  -y, --yes    Turn off prompting to confirm cascaded deletion of application resources
 ```
 
 ### Options inherited from parent commands

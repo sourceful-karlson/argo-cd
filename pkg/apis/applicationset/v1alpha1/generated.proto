@@ -68,6 +68,7 @@ message ApplicationSetGenerator {
 
 // ApplicationSetList contains a list of ApplicationSet
 // +kubebuilder:object:root=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 message ApplicationSetList {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
 

@@ -4986,7 +4986,7 @@
     },
     "v1alpha1ApplicationSetList": {
       "type": "object",
-      "title": "ApplicationSetList contains a list of ApplicationSet\n+kubebuilder:object:root=true",
+      "title": "ApplicationSetList contains a list of ApplicationSet\n+kubebuilder:object:root=true\n+k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object",
       "properties": {
         "items": {
           "type": "array",

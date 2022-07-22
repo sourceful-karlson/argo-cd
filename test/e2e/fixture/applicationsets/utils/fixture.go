@@ -73,7 +73,7 @@ func GetE2EFixtureK8sClient() *E2EFixtureK8sClient {
 			KubeClientset:    kubernetes.NewForConfigOrDie(config),
 		}
 
-		internalClientVars.AppSetClientset = internalClientVars.DynamicClientset.Resource(v1alpha1.GroupVersion.WithResource("applicationsets")).Namespace(ArgoCDNamespace)
+		internalClientVars.AppSetClientset = internalClientVars.DynamicClientset.Resource(v1alpha1.SchemeGroupVersion.WithResource("applicationsets")).Namespace(ArgoCDNamespace)
 
 	})
 	return internalClientVars

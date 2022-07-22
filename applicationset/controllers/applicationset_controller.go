@@ -476,7 +476,7 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			return nil
 		}
 		// ...make sure it's a application set...
-		if owner.APIVersion != argoprojiov1alpha1.GroupVersion.String() || owner.Kind != "ApplicationSet" {
+		if owner.APIVersion != argoprojiov1alpha1.SchemeGroupVersion.String() || owner.Kind != "ApplicationSet" {
 			return nil
 		}
 

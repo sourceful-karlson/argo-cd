@@ -9,14 +9,22 @@ argocd appset list [flags]
 ### Examples
 
 ```
-  # List all appsets
+  
+			# List all appsets
   			argocd appset list
+			
+			# List apps by label, in this example we listing apps that are children of another app (aka app-of-apps)
+			argocd app list -l app.kubernetes.io/instance=my-app
+		
 ```
 
 ### Options
 
 ```
-  -h, --help   help for list
+  -h, --help                  help for list
+  -o, --output string         Output format. One of: wide|name|json|yaml (default "wide")
+  -p, --project stringArray   Filter by project name
+  -l, --selector string       List apps by label
 ```
 
 ### Options inherited from parent commands

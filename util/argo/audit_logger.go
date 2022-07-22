@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	appsetv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/applicationset/v1alpha1"
 )
 
 type AuditLogger struct {
@@ -104,6 +105,16 @@ func (l *AuditLogger) LogAppEvent(app *v1alpha1.Application, info EventInfo, mes
 		"dest-server":    app.Spec.Destination.Server,
 		"dest-namespace": app.Spec.Destination.Namespace,
 	})
+}
+
+func (l *AuditLogger) LogAppSetEvent(app *appsetv1alpha1.ApplicationSet, info EventInfo, message string) {
+	objectMeta := ObjectRef{
+		Name:            app.ObjectMeta.Name,
+		Namespace:       app.ObjectMeta.Namespace,
+		ResourceVersion: app.ObjectMeta.ResourceVersion,
+		UID:             app.ObjectMeta.UID,
+	}
+	l.logEvent(objectMeta, v1alpha1.ApplicationSetSchemaGroupVersionKind, info, message, map[string]string{})
 }
 
 func (l *AuditLogger) LogResourceEvent(res *v1alpha1.ResourceNode, info EventInfo, message string) {

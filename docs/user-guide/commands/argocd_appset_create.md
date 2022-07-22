@@ -10,8 +10,8 @@ argocd appset create [flags]
 
 ```
 
-		argocd appset create <filename>
-
+			argocd appset create <filename>
+		
 ```
 
 ### Options

@@ -1,13 +1,12 @@
 package commands
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"text/tabwriter"
 
+	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 
 	"github.com/argoproj/argo-cd/v2/cmd/argocd/commands/headless"
@@ -53,17 +52,19 @@ func NewAppSetCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 
 // NewApplicationCreateCommand returns a new instance of an `argocd appset create` command
 func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
-	var (
-		appOpts cmdutil.AppOptions
-		upsert  bool
-	)
 	var command = &cobra.Command{
 		Use:   "create",
 		Short: "Create an ApplicationSet",
 		Example: `
-		argocd appset create <filename>
-`,
+			argocd appset create <filename>
+		`,
 		Run: func(c *cobra.Command, args []string) {
+			ctx := c.Context()
+
+			if len(args) == 0 {
+				c.HelpFunc()(c, args)
+				os.Exit(1)
+			}
 			argocdClient := headless.NewClientOrDie(clientOpts, c)
 			fileUrl := args[0]
 			appsets, err := cmdutil.ConstructApplicationSet(fileUrl)
@@ -80,14 +81,11 @@ func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cob
 				appSetCreateRequest := applicationset.ApplicationSetCreateRequest{
 					FilePath:       fileUrl,
 					Applicationset: appset,
-					Upsert:         upsert,
-					Validate:       appOpts.Validate,
 				}
-				created, err := appIf.Create(context.Background(), &appSetCreateRequest)
+				created, err := appIf.Create(ctx, &appSetCreateRequest)
 				errors.CheckError(err)
 				fmt.Printf("application set '%s' created\n", created.ObjectMeta.Name)
 			}
-			log.Printf("AppSet Create command %s", strings.Join(args, " "))
 		},
 	}
 	return command
@@ -98,45 +96,59 @@ func NewApplicationSetListCommand(clientOpts *argocdclient.ClientOptions) *cobra
 	var (
 		output   string
 		selector string
+		projects []string
 	)
 	var command = &cobra.Command{
 		Use:   "list",
 		Short: "list of applicationSet",
-		Example: `  # List all appsets
-  			argocd appset list`,
+		Example: `  
+			# List all appsets
+  			argocd appset list
+			
+			# List apps by label, in this example we listing apps that are children of another app (aka app-of-apps)
+			argocd app list -l app.kubernetes.io/instance=my-app
+		`,
 		Run: func(c *cobra.Command, args []string) {
+			ctx := c.Context()
+
 			conn, appIf := headless.NewClientOrDie(clientOpts, c).NewApplicationSetClientOrDie()
 			defer argoio.Close(conn)
-			apps, err := appIf.List(context.Background(), &applicationset.ApplicationSetQuery{Selector: selector})
+			appsets, err := appIf.List(ctx, &applicationset.ApplicationSetQuery{Selector: selector})
 			errors.CheckError(err)
-			appList := apps.Items
+			appsetList := appsets.Items
 
 			switch output {
 			case "yaml", "json":
-				err := PrintResourceList(appList, output, false)
+				err := PrintResourceList(appsetList, output, false)
 				errors.CheckError(err)
 			case "name":
-				printApplicationSetNames(appList)
+				printApplicationSetNames(appsetList)
 			case "wide", "":
-				printApplicationSetTable(appList, &output)
+				printApplicationSetTable(appsetList, &output)
 			default:
 				errors.CheckError(fmt.Errorf("unknown output format: %s", output))
 			}
 		},
 	}
+	command.Flags().StringVarP(&output, "output", "o", "wide", "Output format. One of: wide|name|json|yaml")
+	command.Flags().StringVarP(&selector, "selector", "l", "", "List apps by label")
+	command.Flags().StringArrayVarP(&projects, "project", "p", []string{}, "Filter by project name")
 
 	return command
 }
 
 // NewApplicationSetUpdateCommand returns a new instance of an `argocd appset update` command
 func NewApplicationSetUpdateCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
-	var (
-		appsetName string
-	)
 	var command = &cobra.Command{
 		Use:   "update",
 		Short: "Updates the given applicationSet",
 		Run: func(c *cobra.Command, args []string) {
+			ctx := c.Context()
+
+			if len(args) == 0 {
+				c.HelpFunc()(c, args)
+				os.Exit(1)
+			}
 			argocdClient := headless.NewClientOrDie(clientOpts, c)
 			fileUrl := args[0]
 			appsets, err := cmdutil.ConstructApplicationSet(fileUrl)
@@ -150,52 +162,87 @@ func NewApplicationSetUpdateCommand(clientOpts *argocdclient.ClientOptions) *cob
 
 				conn, appIf := argocdClient.NewApplicationSetClientOrDie()
 				defer argoio.Close(conn)
-				appSetCreateRequest := applicationset.ApplicationSetUpdateRequest{
+				appsetUpdateRequest := applicationset.ApplicationSetUpdateRequest{
 					Applicationset: appset,
 				}
-				created, err := appIf.Update(context.Background(), &appSetCreateRequest)
+				updated, err := appIf.Update(ctx, &appsetUpdateRequest)
 				errors.CheckError(err)
-				fmt.Printf("application set '%s' created\n", created.ObjectMeta.Name)
+				fmt.Printf("application set '%s' updated\n", updated.Name)
 			}
-			log.Printf("AppSet Create command %s", strings.Join(args, " "))
 		},
 	}
-	command.Flags().StringVar(&appsetName, "appset-name", "/", "Name of the appset")
 	return command
 }
 
 // NewApplicationSetDeleteCommand returns a new instance of an `argocd appset delete` command
 func NewApplicationSetDeleteCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 	var (
-		appsetName string
+		noPrompt bool
 	)
 	var command = &cobra.Command{
 		Use:   "delete",
 		Short: "Delete an applicationSet",
+		Example: `  
+			# Delete an applicationset
+			argocd appset delete APPNAME
+		`,
 		Run: func(c *cobra.Command, args []string) {
-			argocdClient := headless.NewClientOrDie(clientOpts, c)
-			fileUrl := args[0]
-			appsets, err := cmdutil.ConstructApplicationSet(fileUrl)
-			errors.CheckError(err)
+			ctx := c.Context()
 
-			for _, appset := range appsets {
-				if appset.Name == "" {
-					c.HelpFunc()(c, args)
-					os.Exit(1)
+			if len(args) == 0 {
+				c.HelpFunc()(c, args)
+				os.Exit(1)
+			}
+			conn, appIf := headless.NewClientOrDie(clientOpts, c).NewApplicationSetClientOrDie()
+			defer argoio.Close(conn)
+			var isTerminal bool = isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
+			var isConfirmAll bool = false
+			var numOfApps = len(args)
+			var promptFlag = c.Flag("yes")
+			if promptFlag.Changed && promptFlag.Value.String() == "true" {
+				noPrompt = true
+			}
+			for _, appsetName := range args {
+				appsetDeleteReq := applicationset.ApplicationSetDeleteRequest{
+					Name: appsetName,
 				}
 
-				conn, appIf := argocdClient.NewApplicationSetClientOrDie()
-				defer argoio.Close(conn)
-				appSetCreateRequest := applicationset.ApplicationSetUpdateRequest{
-					Applicationset: appset,
+				if isTerminal && !noPrompt {
+					var confirmAnswer string = "n"
+					var lowercaseAnswer string
+					if numOfApps == 1 {
+						fmt.Println("Are you sure you want to delete '" + appsetName + "' and all its resources? [y/n]")
+						fmt.Scan(&confirmAnswer)
+						lowercaseAnswer = strings.ToLower(confirmAnswer)
+					} else {
+						if !isConfirmAll {
+							fmt.Println("Are you sure you want to delete '" + appsetName + "' and all its resources? [y/n/A] where 'A' is to delete all specified apps and their resources without prompting")
+							fmt.Scan(&confirmAnswer)
+							lowercaseAnswer = strings.ToLower(confirmAnswer)
+							if lowercaseAnswer == "a" || lowercaseAnswer == "all" {
+								lowercaseAnswer = "y"
+								isConfirmAll = true
+							}
+						} else {
+							lowercaseAnswer = "y"
+						}
+					}
+					if lowercaseAnswer == "y" || lowercaseAnswer == "yes" {
+						_, err := appIf.Delete(ctx, &appsetDeleteReq)
+						errors.CheckError(err)
+						fmt.Printf("applicationset '%s' deleted\n", appsetName)
+					} else {
+						fmt.Println("The command to delete '" + appsetName + "' was cancelled.")
+					}
+				} else {
+					_, err := appIf.Delete(ctx, &appsetDeleteReq)
+					errors.CheckError(err)
 				}
-				created, err := appIf.Update(context.Background(), &appSetCreateRequest)
-				errors.CheckError(err)
-				fmt.Printf("application set '%s' created\n", created.ObjectMeta.Name)
 			}
 		},
 	}
-	command.Flags().StringVar(&appsetName, "applicationset-name", "foreground", "")
+	command.Flags().BoolVarP(&noPrompt, "yes", "y", false, "Turn off prompting to confirm cascaded deletion of application resources")
+
 	return command
 }
 

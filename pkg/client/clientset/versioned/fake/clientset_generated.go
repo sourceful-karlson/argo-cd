@@ -6,6 +6,8 @@ import (
 	clientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned"
 	argoprojv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/application/v1alpha1"
 	fakeargoprojv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/application/v1alpha1/fake"
+	applicationsetv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/applicationset/v1alpha1"
+	fakeapplicationsetv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/applicationset/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -66,4 +68,9 @@ var (
 // ArgoprojV1alpha1 retrieves the ArgoprojV1alpha1Client
 func (c *Clientset) ArgoprojV1alpha1() argoprojv1alpha1.ArgoprojV1alpha1Interface {
 	return &fakeargoprojv1alpha1.FakeArgoprojV1alpha1{Fake: &c.Fake}
+}
+
+// ApplicationsetV1alpha1 retrieves the ApplicationsetV1alpha1Client
+func (c *Clientset) ApplicationsetV1alpha1() applicationsetv1alpha1.ApplicationsetV1alpha1Interface {
+	return &fakeapplicationsetv1alpha1.FakeApplicationsetV1alpha1{Fake: &c.Fake}
 }

@@ -76,10 +76,6 @@ service ApplicationSetService {
 	rpc Create (ApplicationSetCreateRequest) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
 	}
 
-	//Get returns an applicationset by name
-	rpc Get (ApplicationSetQuery) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
-	}
-
 	// Update updates an applicationset
 	rpc Update(ApplicationSetUpdateRequest) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
 	}
