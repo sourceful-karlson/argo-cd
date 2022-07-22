@@ -2154,10 +2154,10 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   labels:
-    app.kubernetes.io/name: applicationsets.argoproj.io
-  name: applicationsets.argoproj.io
+    app.kubernetes.io/name: applicationsets.appset.argoproj.io
+  name: applicationsets.appset.argoproj.io
 spec:
-  group: argoproj.io
+  group: appset.argoproj.io
   names:
     kind: ApplicationSet
     listKind: ApplicationSetList

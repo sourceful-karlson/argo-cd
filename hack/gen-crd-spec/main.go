@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application"
+	"github.com/argoproj/argo-cd/v2/pkg/apis/applicationset"
 
 	"github.com/argoproj/gitops-engine/pkg/utils/kube"
 	"github.com/ghodss/yaml"
@@ -107,9 +108,9 @@ func main() {
 		writeCRDintoFile(crd, path)
 	}
 	crdsappset := getCRDApplicationset()
-	crd := crdsappset[application.ApplicationSetFullName]
+	crd := crdsappset[applicationset.ApplicationSetFullName]
 	if crd == nil {
-		panic(fmt.Sprintf("CRD of kind %s was not generated", application.ApplicationSetFullName))
+		panic(fmt.Sprintf("CRD of kind %s was not generated", applicationset.ApplicationSetFullName))
 	}
 	writeCRDintoFile(crd, "manifests/crds/applicationset-crd.yaml")
 }

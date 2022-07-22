@@ -46,13 +46,13 @@ func NewFilteredApplicationSetInformer(client versioned.Interface, namespace str
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ApplicationsetV1alpha1().ApplicationSets(namespace).List(context.TODO(), options)
+				return client.AppsetV1alpha1().ApplicationSets(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ApplicationsetV1alpha1().ApplicationSets(namespace).Watch(context.TODO(), options)
+				return client.AppsetV1alpha1().ApplicationSets(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&applicationsetv1alpha1.ApplicationSet{},

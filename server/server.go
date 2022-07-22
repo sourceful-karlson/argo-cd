@@ -244,8 +244,8 @@ func NewServer(ctx context.Context, opts ArgoCDServerOpts) *ArgoCDServer {
 	appInformer := factory.Argoproj().V1alpha1().Applications().Informer()
 	appLister := factory.Argoproj().V1alpha1().Applications().Lister().Applications(opts.Namespace)
 
-	appsetInformer := factory.Applicationset().V1alpha1().ApplicationSets().Informer()
-	appsetLister := factory.Applicationset().V1alpha1().ApplicationSets().Lister().ApplicationSets(opts.Namespace)
+	appsetInformer := factory.Appset().V1alpha1().ApplicationSets().Informer()
+	appsetLister := factory.Appset().V1alpha1().ApplicationSets().Lister().ApplicationSets(opts.Namespace)
 
 	userStateStorage := util_session.NewUserStateStorage(opts.RedisClient)
 	sessionMgr := util_session.NewSessionManager(settingsMgr, projLister, opts.DexServerAddr, opts.DexTLSConfig, userStateStorage)

@@ -16,13 +16,13 @@ import (
 
 // FakeApplicationSets implements ApplicationSetInterface
 type FakeApplicationSets struct {
-	Fake *FakeApplicationsetV1alpha1
+	Fake *FakeAppsetV1alpha1
 	ns   string
 }
 
-var applicationsetsResource = schema.GroupVersionResource{Group: "applicationset.argoproj.io", Version: "v1alpha1", Resource: "applicationsets"}
+var applicationsetsResource = schema.GroupVersionResource{Group: "appset.argoproj.io", Version: "v1alpha1", Resource: "applicationsets"}
 
-var applicationsetsKind = schema.GroupVersionKind{Group: "applicationset.argoproj.io", Version: "v1alpha1", Kind: "ApplicationSet"}
+var applicationsetsKind = schema.GroupVersionKind{Group: "appset.argoproj.io", Version: "v1alpha1", Kind: "ApplicationSet"}
 
 // Get takes name of the applicationSet, and returns the corresponding applicationSet object, and an error if there is any.
 func (c *FakeApplicationSets) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.ApplicationSet, err error) {

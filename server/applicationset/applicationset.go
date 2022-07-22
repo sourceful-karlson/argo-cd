@@ -69,6 +69,7 @@ func NewServer(
 ) applicationset.ApplicationSetServiceServer {
 	s := &Server{
 		ns:             namespace,
+		kubeclientset:  kubeclientset,
 		cache:          cache,
 		db:             db,
 		enf:            enf,
@@ -148,7 +149,7 @@ func (s *Server) Create(ctx context.Context, q *applicationset.ApplicationSetCre
 	s.projectLock.RLock(project.Name)
 	defer s.projectLock.RUnlock(project.Name)
 
-	created, err := s.appclientset.ApplicationsetV1alpha1().ApplicationSets(s.ns).Create(ctx, appset, metav1.CreateOptions{})
+	created, err := s.appclientset.AppsetV1alpha1().ApplicationSets(s.ns).Create(ctx, appset, metav1.CreateOptions{})
 	if err == nil {
 		s.logAppSetEvent(created, ctx, argo.EventReasonResourceCreated, "created applicationset")
 		s.waitSync(created)
@@ -189,7 +190,7 @@ func (s *Server) validateAndUpdateAppSet(ctx context.Context, newApp *v1alpha1.A
 		return nil, fmt.Errorf("error validating appset: %w", err)
 	}
 
-	existingAppset, err := s.appclientset.ApplicationsetV1alpha1().ApplicationSets(s.ns).Get(ctx, newApp.Name, metav1.GetOptions{})
+	existingAppset, err := s.appclientset.AppsetV1alpha1().ApplicationSets(s.ns).Get(ctx, newApp.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting applicationset: %w", err)
 	}
@@ -237,7 +238,7 @@ func (s *Server) updateApp(appset *v1alpha1.ApplicationSet, newAppset *v1alpha1.
 			appset.Annotations = newAppset.Annotations
 		}
 
-		res, err := s.appclientset.ApplicationsetV1alpha1().ApplicationSets(s.ns).Update(ctx, appset, metav1.UpdateOptions{})
+		res, err := s.appclientset.AppsetV1alpha1().ApplicationSets(s.ns).Update(ctx, appset, metav1.UpdateOptions{})
 		if err == nil {
 			s.logAppSetEvent(appset, ctx, argo.EventReasonResourceUpdated, "updated applicationset spec")
 			s.waitSync(res)
@@ -247,7 +248,7 @@ func (s *Server) updateApp(appset *v1alpha1.ApplicationSet, newAppset *v1alpha1.
 			return nil, err
 		}
 
-		appset, err = s.appclientset.ApplicationsetV1alpha1().ApplicationSets(s.ns).Get(ctx, newAppset.Name, metav1.GetOptions{})
+		appset, err = s.appclientset.AppsetV1alpha1().ApplicationSets(s.ns).Get(ctx, newAppset.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("error getting application: %w", err)
 		}
@@ -257,7 +258,7 @@ func (s *Server) updateApp(appset *v1alpha1.ApplicationSet, newAppset *v1alpha1.
 
 func (s *Server) Delete(ctx context.Context, q *applicationset.ApplicationSetDeleteRequest) (*applicationset.ApplicationSetResponse, error) {
 
-	appset, err := s.appclientset.ApplicationsetV1alpha1().ApplicationSets(s.ns).Get(ctx, q.Name, metav1.GetOptions{})
+	appset, err := s.appclientset.AppsetV1alpha1().ApplicationSets(s.ns).Get(ctx, q.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting application: %w", err)
 	}

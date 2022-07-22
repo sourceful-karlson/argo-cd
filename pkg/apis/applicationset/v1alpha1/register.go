@@ -16,7 +16,7 @@ limitations under the License.
 
 // Package v1alpha1 contains API Schema definitions for the argoproj.io v1alpha1 API group
 // +kubebuilder:object:generate=true
-// +groupName=argoproj.io
+// +groupName=appset.argoproj.io
 package v1alpha1
 
 import (
@@ -29,6 +29,8 @@ import (
 var (
 	// SchemeGroupVersion is group version used to register these objects
 	SchemeGroupVersion = schema.GroupVersion{Group: applicationset.Group, Version: "v1alpha1"}
+
+	ApplicationSetSchemaGroupVersionKind = schema.GroupVersionKind{Group: applicationset.Group, Version: "v1alpha1", Kind: applicationset.ApplicationSetKind}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)

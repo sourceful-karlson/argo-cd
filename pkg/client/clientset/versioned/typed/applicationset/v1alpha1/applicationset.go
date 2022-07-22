@@ -40,7 +40,7 @@ type applicationSets struct {
 }
 
 // newApplicationSets returns a ApplicationSets
-func newApplicationSets(c *ApplicationsetV1alpha1Client, namespace string) *applicationSets {
+func newApplicationSets(c *AppsetV1alpha1Client, namespace string) *applicationSets {
 	return &applicationSets{
 		client: c.RESTClient(),
 		ns:     namespace,

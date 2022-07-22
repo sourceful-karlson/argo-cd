@@ -114,7 +114,7 @@ func (l *AuditLogger) LogAppSetEvent(app *appsetv1alpha1.ApplicationSet, info Ev
 		ResourceVersion: app.ObjectMeta.ResourceVersion,
 		UID:             app.ObjectMeta.UID,
 	}
-	l.logEvent(objectMeta, v1alpha1.ApplicationSetSchemaGroupVersionKind, info, message, map[string]string{})
+	l.logEvent(objectMeta, appsetv1alpha1.ApplicationSetSchemaGroupVersionKind, info, message, map[string]string{})
 }
 
 func (l *AuditLogger) LogResourceEvent(res *v1alpha1.ResourceNode, info EventInfo, message string) {

@@ -6,8 +6,8 @@ import (
 	clientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned"
 	argoprojv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/application/v1alpha1"
 	fakeargoprojv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/application/v1alpha1/fake"
-	applicationsetv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/applicationset/v1alpha1"
-	fakeapplicationsetv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/applicationset/v1alpha1/fake"
+	appsetv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/applicationset/v1alpha1"
+	fakeappsetv1alpha1 "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/typed/applicationset/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -70,7 +70,7 @@ func (c *Clientset) ArgoprojV1alpha1() argoprojv1alpha1.ArgoprojV1alpha1Interfac
 	return &fakeargoprojv1alpha1.FakeArgoprojV1alpha1{Fake: &c.Fake}
 }
 
-// ApplicationsetV1alpha1 retrieves the ApplicationsetV1alpha1Client
-func (c *Clientset) ApplicationsetV1alpha1() applicationsetv1alpha1.ApplicationsetV1alpha1Interface {
-	return &fakeapplicationsetv1alpha1.FakeApplicationsetV1alpha1{Fake: &c.Fake}
+// AppsetV1alpha1 retrieves the AppsetV1alpha1Client
+func (c *Clientset) AppsetV1alpha1() appsetv1alpha1.AppsetV1alpha1Interface {
+	return &fakeappsetv1alpha1.FakeAppsetV1alpha1{Fake: &c.Fake}
 }

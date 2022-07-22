@@ -158,13 +158,13 @@ type SharedInformerFactory interface {
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
 	Argoproj() application.Interface
-	Applicationset() applicationset.Interface
+	Appset() applicationset.Interface
 }
 
 func (f *sharedInformerFactory) Argoproj() application.Interface {
 	return application.New(f, f.namespace, f.tweakListOptions)
 }
 
-func (f *sharedInformerFactory) Applicationset() applicationset.Interface {
+func (f *sharedInformerFactory) Appset() applicationset.Interface {
 	return applicationset.New(f, f.namespace, f.tweakListOptions)
 }

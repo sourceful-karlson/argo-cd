@@ -20,7 +20,6 @@ option go_package = "github.com/argoproj/argo-cd/v2/pkg/apis/applicationset/v1al
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:resource:path=applicationsets,shortName=appset;appsets
 // +kubebuilder:subresource:status
-// +kubebuilder:object:root=true
 message ApplicationSet {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -67,8 +66,8 @@ message ApplicationSetGenerator {
 }
 
 // ApplicationSetList contains a list of ApplicationSet
-// +kubebuilder:object:root=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +kubebuilder:object:root=true
 message ApplicationSetList {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
 
