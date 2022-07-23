@@ -195,7 +195,7 @@ func (a *Actions) CreateNamespace() *Actions {
 func (a *Actions) Create(appSet v1alpha1.ApplicationSet) *Actions {
 	a.context.t.Helper()
 
-	appSet.APIVersion = "argoproj.io/v1alpha1"
+	appSet.APIVersion = "appset.argoproj.io/v1alpha1"
 	appSet.Kind = "ApplicationSet"
 
 	fixtureClient := utils.GetE2EFixtureK8sClient()
