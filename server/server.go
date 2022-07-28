@@ -1,8 +1,11 @@
 package server
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	goio "io"
 	"io/fs"
@@ -978,7 +981,7 @@ func registerDownloadHandlers(mux *http.ServeMux, base string) {
 	}
 }
 
-func (s *ArgoCDServer) getIndexData() ([]byte, error) {
+func (s *ArgoCDServer) getIndexData(cspNonce string) ([]byte, error) {
 	s.indexDataInit.Do(func() {
 		data, err := ui.Embedded.ReadFile("dist/app/index.html")
 		if err != nil {
@@ -992,7 +995,7 @@ func (s *ArgoCDServer) getIndexData() ([]byte, error) {
 		}
 	})
 
-	s.indexData = []byte(strings.Replace(string(s.indexData), `<script id="webpack-nonce"></script>`, `<script nonce="michael">__webpack_nonce__ = 'michael'</script>`, 1))
+	s.indexData = bytes.Replace(s.indexData, []byte(`{NONCE}`), []byte(cspNonce), 1)
 
 	return s.indexData, s.indexDataErr
 }
@@ -1027,10 +1030,6 @@ func (server *ArgoCDServer) newStaticAssetsHandler() func(http.ResponseWriter, *
 		if server.XFrameOptions != "" {
 			w.Header().Set("X-Frame-Options", server.XFrameOptions)
 		}
-		// Set Content-Security-Policy according to configuration
-		if server.ContentSecurityPolicy != "" {
-			w.Header().Set("Content-Security-Policy", server.ContentSecurityPolicy)
-		}
 		w.Header().Set("X-XSS-Protection", "1")
 
 		// serve index.html for non file requests to support HTML5 History API
@@ -1038,7 +1037,19 @@ func (server *ArgoCDServer) newStaticAssetsHandler() func(http.ResponseWriter, *
 			for k, v := range noCacheHeaders {
 				w.Header().Set(k, v)
 			}
-			data, err := server.getIndexData()
+			// Set Content-Security-Policy according to configuration
+			var cspNonce string
+			if server.ContentSecurityPolicy != "" {
+				nonceBytes := make([]byte, 16)
+				_, err := rand.Read(nonceBytes)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+				cspNonce = base64.StdEncoding.EncodeToString(nonceBytes)
+				cspWithNonce := strings.ReplaceAll(server.ContentSecurityPolicy, "{NONCE}", cspNonce)
+				w.Header().Set("Content-Security-Policy", cspWithNonce)
+			}
+			data, err := server.getIndexData(cspNonce)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
