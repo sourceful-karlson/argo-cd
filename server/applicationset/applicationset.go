@@ -38,7 +38,6 @@ import (
 
 type Server struct {
 	ns             string
-	kubeclientset  kubernetes.Interface
 	db             db.ArgoDB
 	enf            *rbac.Enforcer
 	cache          *servercache.Cache
@@ -69,7 +68,6 @@ func NewServer(
 ) applicationset.ApplicationSetServiceServer {
 	s := &Server{
 		ns:             namespace,
-		kubeclientset:  kubeclientset,
 		cache:          cache,
 		db:             db,
 		enf:            enf,
@@ -109,10 +107,10 @@ func (s *Server) List(ctx context.Context, q *applicationset.ApplicationSetQuery
 		}
 	}
 
-	// Filter applications by name
+	// Filter applicationsets by name
 	newItems = argoutil.FilterAppSetsByProjects(newItems, q.Projects)
 
-	// Sort found applications by name
+	// Sort found applicationsets by name
 	sort.Slice(newItems, func(i, j int) bool {
 		return newItems[i].Name < newItems[j].Name
 	})
@@ -128,14 +126,11 @@ func (s *Server) List(ctx context.Context, q *applicationset.ApplicationSetQuery
 }
 
 func (s *Server) Create(ctx context.Context, q *applicationset.ApplicationSetCreateRequest) (*v1alpha1.ApplicationSet, error) {
-	if q.GetApplicationset() == nil {
+	appset := q.GetApplicationset()
+
+	if appset == nil {
 		return nil, fmt.Errorf("error creating applicationset: applicationset is nil in request")
 	}
-	if err := s.enf.EnforceErr(ctx.Value("claims"), rbacpolicy.ResourceApplicationSet, rbacpolicy.ActionCreate, apputil.AppSetRBACName(q.GetApplicationset())); err != nil {
-		return nil, err
-	}
-
-	appset := q.GetApplicationset()
 
 	project, err := s.validateAppSet(ctx, appset)
 	if err != nil {
@@ -143,7 +138,7 @@ func (s *Server) Create(ctx context.Context, q *applicationset.ApplicationSetCre
 	}
 
 	if err := s.checkCreatePermissions(ctx, appset, project); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error checking create permissions for ApplicationSet %s : %s", appset.Name, err)
 	}
 
 	s.projectLock.RLock(project.Name)
@@ -169,19 +164,15 @@ func (s *Server) Create(ctx context.Context, q *applicationset.ApplicationSetCre
 }
 
 func (s *Server) Update(ctx context.Context, q *applicationset.ApplicationSetUpdateRequest) (*v1alpha1.ApplicationSet, error) {
-
-	if err := s.enf.EnforceErr(ctx.Value("claims"), rbacpolicy.ResourceApplicationSet, rbacpolicy.ActionUpdate, apputil.AppSetRBACName(q.GetApplicationset())); err != nil {
-		return nil, err
+	appset := q.GetApplicationset()
+	if err := s.enf.EnforceErr(ctx.Value("claims"), rbacpolicy.ResourceApplicationSet, rbacpolicy.ActionUpdate, apputil.AppSetRBACName(appset)); err != nil {
+		return nil, fmt.Errorf("error checking update permissions for ApplicationSet %s : %s", appset.Name, err)
 	}
 
-	validate := true
-	if q.Validate {
-		validate = q.Validate
-	}
-	return s.validateAndUpdateAppSet(ctx, q.Applicationset, false, validate)
+	return s.validateAndUpdateAppSet(ctx, q.Applicationset, false)
 }
 
-func (s *Server) validateAndUpdateAppSet(ctx context.Context, newApp *v1alpha1.ApplicationSet, merge bool, validate bool) (*v1alpha1.ApplicationSet, error) {
+func (s *Server) validateAndUpdateAppSet(ctx context.Context, newApp *v1alpha1.ApplicationSet, merge bool) (*v1alpha1.ApplicationSet, error) {
 	s.projectLock.RLock(newApp.Spec.Template.Spec.GetProject())
 	defer s.projectLock.RUnlock(newApp.Spec.Template.Spec.GetProject())
 
@@ -196,7 +187,7 @@ func (s *Server) validateAndUpdateAppSet(ctx context.Context, newApp *v1alpha1.A
 	}
 
 	if existingAppset != nil && existingAppset.Spec.Template.Spec.Project != newApp.Spec.Template.Spec.Project {
-		// When changing projects, caller must have application create & update privileges in new project
+		// When changing projects, caller must have applicationset create, update & delete privileges in new project
 		// NOTE: the update check was already verified in the caller to this function
 		if err := s.enf.EnforceErr(ctx.Value("claims"), rbacpolicy.ResourceApplicationSet, rbacpolicy.ActionCreate, apputil.AppSetRBACName(newApp)); err != nil {
 			return nil, err
@@ -205,9 +196,13 @@ func (s *Server) validateAndUpdateAppSet(ctx context.Context, newApp *v1alpha1.A
 		if err := s.enf.EnforceErr(ctx.Value("claims"), rbacpolicy.ResourceApplicationSet, rbacpolicy.ActionUpdate, apputil.AppSetRBACName(existingAppset)); err != nil {
 			return nil, err
 		}
+		// They also need 'delete' privileges in the old project
+		if err := s.enf.EnforceErr(ctx.Value("claims"), rbacpolicy.ResourceApplicationSet, rbacpolicy.ActionDelete, apputil.AppSetRBACName(existingAppset)); err != nil {
+			return nil, err
+		}
 	}
 
-	a, err := s.updateApp(existingAppset, newApp, ctx, merge)
+	a, err := s.updateAppSet(existingAppset, newApp, ctx, merge)
 	if err != nil {
 		return nil, fmt.Errorf("error updating applicationset: %w", err)
 	}
@@ -227,7 +222,7 @@ func mergeStringMaps(items ...map[string]string) map[string]string {
 	return res
 }
 
-func (s *Server) updateApp(appset *v1alpha1.ApplicationSet, newAppset *v1alpha1.ApplicationSet, ctx context.Context, merge bool) (*v1alpha1.ApplicationSet, error) {
+func (s *Server) updateAppSet(appset *v1alpha1.ApplicationSet, newAppset *v1alpha1.ApplicationSet, ctx context.Context, merge bool) (*v1alpha1.ApplicationSet, error) {
 	for i := 0; i < 10; i++ {
 		appset.Spec = newAppset.Spec
 		if merge {

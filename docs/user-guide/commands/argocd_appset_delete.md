@@ -10,8 +10,8 @@ argocd appset delete [flags]
 
 ```
   
-			# Delete an applicationset
-			argocd appset delete APPNAME
+	# Delete an applicationset
+	argocd appset delete APPNAME
 		
 ```
 

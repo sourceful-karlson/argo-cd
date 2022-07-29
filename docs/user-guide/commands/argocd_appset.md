@@ -71,6 +71,6 @@ argocd appset [flags]
 * [argocd](argocd.md)	 - argocd controls a Argo CD server
 * [argocd appset create](argocd_appset_create.md)	 - Create an ApplicationSet
 * [argocd appset delete](argocd_appset_delete.md)	 - Delete an applicationSet
-* [argocd appset list](argocd_appset_list.md)	 - list of applicationSet
+* [argocd appset list](argocd_appset_list.md)	 - list ApplicationSets
 * [argocd appset update](argocd_appset_update.md)	 - Updates the given applicationSet
 

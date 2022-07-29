@@ -50,13 +50,14 @@ func NewAppSetCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 	return command
 }
 
-// NewApplicationCreateCommand returns a new instance of an `argocd appset create` command
+// NewApplicationSetCreateCommand returns a new instance of an `argocd appset create` command
 func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 	var command = &cobra.Command{
 		Use:   "create",
 		Short: "Create an ApplicationSet",
 		Example: `
-			argocd appset create <filename>
+	# Create ApplicationSets
+	argocd appset create <filename>
 		`,
 		Run: func(c *cobra.Command, args []string) {
 			ctx := c.Context()
@@ -72,7 +73,8 @@ func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cob
 
 			for _, appset := range appsets {
 				if appset.Name == "" {
-					c.HelpFunc()(c, args)
+					err := fmt.Errorf("Error creating applicationset %s. applicationset does not have Name field set", appset)
+					errors.CheckError(err)
 					os.Exit(1)
 				}
 
@@ -91,7 +93,7 @@ func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cob
 	return command
 }
 
-// NewApplicationListommand returns a new instance of an `argocd appset list` command
+// NewApplicationSetListCommand returns a new instance of an `argocd appset list` command
 func NewApplicationSetListCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 	var (
 		output   string
@@ -100,13 +102,10 @@ func NewApplicationSetListCommand(clientOpts *argocdclient.ClientOptions) *cobra
 	)
 	var command = &cobra.Command{
 		Use:   "list",
-		Short: "list of applicationSet",
+		Short: "list ApplicationSets",
 		Example: `  
-			# List all appsets
-  			argocd appset list
-			
-			# List apps by label, in this example we listing apps that are children of another app (aka app-of-apps)
-			argocd app list -l app.kubernetes.io/instance=my-app
+	# List all ApplicationSets
+	argocd appset list
 		`,
 		Run: func(c *cobra.Command, args []string) {
 			ctx := c.Context()
@@ -142,6 +141,10 @@ func NewApplicationSetUpdateCommand(clientOpts *argocdclient.ClientOptions) *cob
 	var command = &cobra.Command{
 		Use:   "update",
 		Short: "Updates the given applicationSet",
+		Example: `
+	# Update ApplicationSet
+	argocd appset update <filename>
+		`,
 		Run: func(c *cobra.Command, args []string) {
 			ctx := c.Context()
 
@@ -156,7 +159,8 @@ func NewApplicationSetUpdateCommand(clientOpts *argocdclient.ClientOptions) *cob
 
 			for _, appset := range appsets {
 				if appset.Name == "" {
-					c.HelpFunc()(c, args)
+					err := fmt.Errorf("error creating applicationset %s. applicationset does not have Name field set", appset)
+					errors.CheckError(err)
 					os.Exit(1)
 				}
 
@@ -183,8 +187,8 @@ func NewApplicationSetDeleteCommand(clientOpts *argocdclient.ClientOptions) *cob
 		Use:   "delete",
 		Short: "Delete an applicationSet",
 		Example: `  
-			# Delete an applicationset
-			argocd appset delete APPNAME
+	# Delete an applicationset
+	argocd appset delete APPNAME
 		`,
 		Run: func(c *cobra.Command, args []string) {
 			ctx := c.Context()
@@ -211,12 +215,12 @@ func NewApplicationSetDeleteCommand(clientOpts *argocdclient.ClientOptions) *cob
 					var confirmAnswer string = "n"
 					var lowercaseAnswer string
 					if numOfApps == 1 {
-						fmt.Println("Are you sure you want to delete '" + appsetName + "' and all its resources? [y/n]")
+						fmt.Println("Are you sure you want to delete '" + appsetName + "' and all its Applications? [y/n]")
 						fmt.Scan(&confirmAnswer)
 						lowercaseAnswer = strings.ToLower(confirmAnswer)
 					} else {
 						if !isConfirmAll {
-							fmt.Println("Are you sure you want to delete '" + appsetName + "' and all its resources? [y/n/A] where 'A' is to delete all specified apps and their resources without prompting")
+							fmt.Println("Are you sure you want to delete '" + appsetName + "' and all its Applications? [y/n/A] where 'A' is to delete all specified Applications and their resources without prompting")
 							fmt.Scan(&confirmAnswer)
 							lowercaseAnswer = strings.ToLower(confirmAnswer)
 							if lowercaseAnswer == "a" || lowercaseAnswer == "all" {

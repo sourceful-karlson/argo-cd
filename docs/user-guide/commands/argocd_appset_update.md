@@ -6,6 +6,15 @@ Updates the given applicationSet
 argocd appset update [flags]
 ```
 
+### Examples
+
+```
+
+	# Update ApplicationSet
+	argocd appset update <filename>
+		
+```
+
 ### Options
 
 ```

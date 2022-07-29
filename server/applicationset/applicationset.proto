@@ -9,7 +9,6 @@ package applicationset;
 
 import "google/api/annotations.proto";
 import "github.com/argoproj/argo-cd/v2/pkg/apis/applicationset/v1alpha1/generated.proto";
-import "github.com/argoproj/argo-cd/v2/reposerver/repository/repository.proto";
 import "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1/generated.proto";
 
 // ApplicationSetQuery is a query for applicationset resources
@@ -38,13 +37,11 @@ message ApplicationSetCreateRequest {
 	string filePath = 1;
 	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 2;
 	bool upsert = 3;
-	bool validate = 4;
 }
 
 message ApplicationSetUpdateRequest {
 	string filePath = 1;
 	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 2;
-	bool validate = 3;
 }
 
 message ApplicationSetDeleteRequest {

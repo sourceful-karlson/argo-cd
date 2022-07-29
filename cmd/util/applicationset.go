@@ -1,8 +1,9 @@
 package util
 
 import (
-	"io/ioutil"
+	"fmt"
 	"net/url"
+	"os"
 
 	argoprojiov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/applicationset/v1alpha1"
 	"github.com/argoproj/argo-cd/v2/util/config"
@@ -21,7 +22,7 @@ func constructAppsetFromFileUrl(fileURL string) ([]*argoprojiov1alpha1.Applicati
 	// read uri
 	err := readAppsetFromURI(fileURL, &appset)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error reading applicationset from file %s: %s", fileURL, err)
 	}
 
 	return appset, nil
@@ -32,7 +33,7 @@ func readAppsetFromURI(fileURL string, appset *[]*argoprojiov1alpha1.Application
 	readFilePayload := func() ([]byte, error) {
 		parsedURL, err := url.ParseRequestURI(fileURL)
 		if err != nil || !(parsedURL.Scheme == "http" || parsedURL.Scheme == "https") {
-			return ioutil.ReadFile(fileURL)
+			return os.ReadFile(fileURL)
 		}
 		return config.ReadRemoteFile(fileURL)
 	}

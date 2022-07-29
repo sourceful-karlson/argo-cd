@@ -1,6 +1,6 @@
 ## argocd appset list
 
-list of applicationSet
+list ApplicationSets
 
 ```
 argocd appset list [flags]
@@ -10,11 +10,8 @@ argocd appset list [flags]
 
 ```
   
-			# List all appsets
-  			argocd appset list
-			
-			# List apps by label, in this example we listing apps that are children of another app (aka app-of-apps)
-			argocd app list -l app.kubernetes.io/instance=my-app
+	# List all ApplicationSets
+	argocd appset list
 		
 ```
 
