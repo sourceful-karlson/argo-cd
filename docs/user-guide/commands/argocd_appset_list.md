@@ -1,6 +1,6 @@
 ## argocd appset list
 
-list ApplicationSets
+List ApplicationSets
 
 ```
 argocd appset list [flags]
@@ -49,5 +49,5 @@ argocd appset list [flags]
 
 ### SEE ALSO
 
-* [argocd appset](argocd_appset.md)	 - Manage applicationsets
+* [argocd appset](argocd_appset.md)	 - Manage ApplicationSets
 

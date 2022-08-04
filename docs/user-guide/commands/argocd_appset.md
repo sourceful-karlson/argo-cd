@@ -1,6 +1,6 @@
 ## argocd appset
 
-Manage applicationsets
+Manage ApplicationSets
 
 ```
 argocd appset [flags]
@@ -9,14 +9,17 @@ argocd appset [flags]
 ### Examples
 
 ```
-  # List all the applications.
+  # Get an ApplicationSet.
+  argocd appset get APPSETNAME
+  
+  # List all the ApplicationSets.
   argocd appset list
   
   # Create an ApplicationSet
-  argocd appset create "(filename.yaml)"
+  argocd appset create <filename or URL> (<filename or URL>...)
   
   # Delete an ApplicationSet
-  argocd appset delete "(applicationset resource name)"
+  argocd appset delete APPSETNAME (APPSETNAME...)
 ```
 
 ### Options
@@ -69,8 +72,9 @@ argocd appset [flags]
 ### SEE ALSO
 
 * [argocd](argocd.md)	 - argocd controls a Argo CD server
-* [argocd appset create](argocd_appset_create.md)	 - Create an ApplicationSet
-* [argocd appset delete](argocd_appset_delete.md)	 - Delete an applicationSet
-* [argocd appset list](argocd_appset_list.md)	 - list ApplicationSets
-* [argocd appset update](argocd_appset_update.md)	 - Updates the given applicationSet
+* [argocd appset create](argocd_appset_create.md)	 - Create one or more ApplicationSets
+* [argocd appset delete](argocd_appset_delete.md)	 - Delete one or more ApplicationSets
+* [argocd appset get](argocd_appset_get.md)	 - Get ApplicationSet details
+* [argocd appset list](argocd_appset_list.md)	 - List ApplicationSets
+* [argocd appset update](argocd_appset_update.md)	 - Updates the given ApplicationSet(s)
 

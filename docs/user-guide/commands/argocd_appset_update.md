@@ -1,6 +1,6 @@
 ## argocd appset update
 
-Updates the given applicationSet
+Updates the given ApplicationSet(s)
 
 ```
 argocd appset update [flags]
@@ -11,7 +11,7 @@ argocd appset update [flags]
 ```
 
 	# Update ApplicationSet
-	argocd appset update <filename>
+	argocd appset update <filename or URL> (<filename or URL>...)
 		
 ```
 
@@ -46,5 +46,5 @@ argocd appset update [flags]
 
 ### SEE ALSO
 
-* [argocd appset](argocd_appset.md)	 - Manage applicationsets
+* [argocd appset](argocd_appset.md)	 - Manage ApplicationSets
 

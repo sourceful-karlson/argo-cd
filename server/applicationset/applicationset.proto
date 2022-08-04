@@ -15,16 +15,12 @@ import "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1/generated.proto
 message ApplicationSetQuery {
 	// the applicationsets's name
 	string name = 1;
-	// forces applicationset reconciliation if set to true
-	string refresh = 2;
 	// the project names to restrict returned list applicationsets
-	repeated string projects = 3;
+	repeated string projects = 2;
 	// when specified with a watch call, shows changes that occur after that particular version of a resource.
-	string resourceVersion = 4;
-	// the selector to restrict returned list to applications only with matched labels
-	string selector = 5;
-	// the repoURL to restrict returned list applications
-	string repo = 6;
+	string resourceVersion = 3;
+	// the selector to restrict returned list to applicationsets only with matched labels
+	string selector = 4;
 }
 
 
@@ -34,51 +30,51 @@ message ApplicationSetResponse {
 }
 
 message ApplicationSetCreateRequest {
-	string filePath = 1;
-	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 2;
-	bool upsert = 3;
+	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 1;
+	bool upsert = 2;
 }
 
 message ApplicationSetUpdateRequest {
-	string filePath = 1;
-	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 2;
+	github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet applicationset = 1;
 }
 
 message ApplicationSetDeleteRequest {
 	string name = 1;
-	bool cascade = 2;
-	string propagationPolicy = 3;
-}
-
-message ApplicationSetResourceDeleteRequest {
-	string name = 1;
-	string namespace = 2;
-	string resourceName = 3;
-	string version = 4;
-	string group = 5;
-	string kind = 6;
-	bool force = 7;
-	bool orphan = 8;
 }
 
 
 // ApplicationSetService
 service ApplicationSetService {
-	
-	//List returns list of applications
+
+	// Get returns an applicationset by name
+	rpc Get (ApplicationSetQuery) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
+		option (google.api.http).get = "/api/v1/applicationsets/{name}";
+	}
+
+	//List returns list of applicationset
 	rpc List (ApplicationSetQuery) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSetList) {
+		option (google.api.http).get = "/api/v1/applicationsets";
 	}
 
 	//Create creates an applicationset
 	rpc Create (ApplicationSetCreateRequest) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
+		option (google.api.http) = {
+			post: "/api/v1/applicationsets"
+			body: "applicationset"
+		};
 	}
 
 	// Update updates an applicationset
 	rpc Update(ApplicationSetUpdateRequest) returns (github.com.argoproj.argo_cd.v2.pkg.apis.applicationset.v1alpha1.ApplicationSet) {
+		option (google.api.http) = {
+			put: "/api/v1/applicationsets/{applicationset.metadata.name}"
+			body: "applicationset"
+		};
 	}
 
 	// Delete deletes an application set
 	rpc Delete(ApplicationSetDeleteRequest) returns (ApplicationSetResponse) {
+		option (google.api.http).delete = "/api/v1/applicationsets/{name}";
 	}
 
 }

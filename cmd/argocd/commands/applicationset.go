@@ -2,12 +2,15 @@ package commands
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"reflect"
 	"strings"
 	"text/tabwriter"
 
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc/codes"
 
 	"github.com/argoproj/argo-cd/v2/cmd/argocd/commands/headless"
 	cmdutil "github.com/argoproj/argo-cd/v2/cmd/util"
@@ -15,20 +18,24 @@ import (
 	"github.com/argoproj/argo-cd/v2/pkg/apiclient/applicationset"
 	arogappsetv1 "github.com/argoproj/argo-cd/v2/pkg/apis/applicationset/v1alpha1"
 	"github.com/argoproj/argo-cd/v2/util/errors"
+	"github.com/argoproj/argo-cd/v2/util/grpc"
 	argoio "github.com/argoproj/argo-cd/v2/util/io"
 	"github.com/argoproj/argo-cd/v2/util/templates"
 )
 
 var (
 	appSetExample = templates.Examples(`
-	# List all the applications.
+	# Get an ApplicationSet.
+	argocd appset get APPSETNAME
+
+	# List all the ApplicationSets.
 	argocd appset list
 
 	# Create an ApplicationSet
-	argocd appset create "(filename.yaml)"
+	argocd appset create <filename or URL> (<filename or URL>...)
 
 	# Delete an ApplicationSet
-	argocd appset delete "(applicationset resource name)"
+	argocd appset delete APPSETNAME (APPSETNAME...)
 	`)
 )
 
@@ -36,13 +43,14 @@ var (
 func NewAppSetCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 	var command = &cobra.Command{
 		Use:     "appset",
-		Short:   "Manage applicationsets",
+		Short:   "Manage ApplicationSets",
 		Example: appSetExample,
 		Run: func(c *cobra.Command, args []string) {
 			c.HelpFunc()(c, args)
 			os.Exit(1)
 		},
 	}
+	command.AddCommand(NewApplicationSetGetCommand(clientOpts))
 	command.AddCommand(NewApplicationSetCreateCommand(clientOpts))
 	command.AddCommand(NewApplicationSetListCommand(clientOpts))
 	command.AddCommand(NewApplicationSetUpdateCommand(clientOpts))
@@ -50,14 +58,67 @@ func NewAppSetCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 	return command
 }
 
+
+
+// NewApplicationSetGetCommand returns a new instance of an `argocd appset get` command
+func NewApplicationSetGetCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
+	var (
+		output        string
+		showParams    bool
+	)
+	var command = &cobra.Command{
+		Use:   "get APPSETNAME",
+		Short: "Get ApplicationSet details",
+		Run: func(c *cobra.Command, args []string) {
+			ctx := c.Context()
+
+			if len(args) == 0 {
+				c.HelpFunc()(c, args)
+				os.Exit(1)
+			}
+			acdClient := headless.NewClientOrDie(clientOpts, c)
+			conn, appIf := acdClient.NewApplicationSetClientOrDie()
+			defer argoio.Close(conn)
+			appSetName := args[0]
+			appSet, err := appIf.Get(ctx, &applicationset.ApplicationSetQuery{Name: appSetName})
+			errors.CheckError(err)
+
+			switch output {
+			case "yaml", "json":
+				err := PrintResource(appSet, output)
+				errors.CheckError(err)
+			case "wide", "":
+				printAppSetSummaryTable(appSet)
+
+				if len(appSet.Status.Conditions) > 0 {
+					fmt.Println()
+					w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+					printAppSetConditions(w, appSet)
+					_ = w.Flush()
+					fmt.Println()
+				}
+				if showParams {
+					printParams(appSet.Spec.Template.Spec.Source.Helm)
+				}
+			default:
+				errors.CheckError(fmt.Errorf("unknown output format: %s", output))
+			}
+		},
+	}
+	command.Flags().StringVarP(&output, "output", "o", "wide", "Output format. One of: json|yaml|wide")
+	command.Flags().BoolVar(&showParams, "show-params", false, "Show ApplicationSet parameters and overrides (for Helm)")
+	return command
+}
+
 // NewApplicationSetCreateCommand returns a new instance of an `argocd appset create` command
 func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
+	var upsert bool
 	var command = &cobra.Command{
 		Use:   "create",
-		Short: "Create an ApplicationSet",
+		Short: "Create one or more ApplicationSets",
 		Example: `
 	# Create ApplicationSets
-	argocd appset create <filename>
+	argocd appset create <filename or URL> (<filename or URL>...)
 		`,
 		Run: func(c *cobra.Command, args []string) {
 			ctx := c.Context()
@@ -73,24 +134,71 @@ func NewApplicationSetCreateCommand(clientOpts *argocdclient.ClientOptions) *cob
 
 			for _, appset := range appsets {
 				if appset.Name == "" {
-					err := fmt.Errorf("Error creating applicationset %s. applicationset does not have Name field set", appset)
+					err := fmt.Errorf("Error creating ApplicationSet %s. ApplicationSet does not have Name field set", appset)
 					errors.CheckError(err)
 					os.Exit(1)
 				}
 
 				conn, appIf := argocdClient.NewApplicationSetClientOrDie()
 				defer argoio.Close(conn)
+
+				// Get app before creating to see if it is being updated or no change
+				existing, err := appIf.Get(ctx, &applicationset.ApplicationSetQuery{Name: appset.Name})
+				if grpc.UnwrapGRPCStatus(err).Code() != codes.NotFound {
+					errors.CheckError(err)
+				}
+
 				appSetCreateRequest := applicationset.ApplicationSetCreateRequest{
-					FilePath:       fileUrl,
 					Applicationset: appset,
+					Upsert:         upsert,
 				}
 				created, err := appIf.Create(ctx, &appSetCreateRequest)
 				errors.CheckError(err)
-				fmt.Printf("application set '%s' created\n", created.ObjectMeta.Name)
+
+				var action string
+				if existing == nil {
+					action = "created"
+				} else if !hasAppSetChanged(existing, created, upsert) {
+					action = "unchanged"
+				} else {
+					action = "updated"
+				}
+
+				fmt.Printf("application set '%s' %s\n", created.ObjectMeta.Name, action)
 			}
 		},
 	}
+	command.Flags().BoolVar(&upsert, "upsert", false, "Allows to override ApplicationSet with the same name even if supplied ApplicationSet spec is different from existing spec")
 	return command
+}
+
+
+
+func hasAppSetChanged(appReq, appRes *arogappsetv1.ApplicationSet, upsert bool) bool {
+	// upsert==false, no change occurred from create command
+	if !upsert {
+		return false
+	}
+
+	// Server will return nils for empty labels, annotations, finalizers
+	if len(appReq.Labels) == 0 {
+		appReq.Labels = nil
+	}
+	if len(appReq.Annotations) == 0 {
+		appReq.Annotations = nil
+	}
+	if len(appReq.Finalizers) == 0 {
+		appReq.Finalizers = nil
+	}
+
+	if reflect.DeepEqual(appRes.Spec, appReq.Spec) &&
+		reflect.DeepEqual(appRes.Labels, appReq.Labels) &&
+		reflect.DeepEqual(appRes.ObjectMeta.Annotations, appReq.Annotations) &&
+		reflect.DeepEqual(appRes.Finalizers, appReq.Finalizers) {
+		return false
+	}
+
+	return true
 }
 
 // NewApplicationSetListCommand returns a new instance of an `argocd appset list` command
@@ -102,7 +210,7 @@ func NewApplicationSetListCommand(clientOpts *argocdclient.ClientOptions) *cobra
 	)
 	var command = &cobra.Command{
 		Use:   "list",
-		Short: "list ApplicationSets",
+		Short: "List ApplicationSets",
 		Example: `  
 	# List all ApplicationSets
 	argocd appset list
@@ -140,10 +248,10 @@ func NewApplicationSetListCommand(clientOpts *argocdclient.ClientOptions) *cobra
 func NewApplicationSetUpdateCommand(clientOpts *argocdclient.ClientOptions) *cobra.Command {
 	var command = &cobra.Command{
 		Use:   "update",
-		Short: "Updates the given applicationSet",
+		Short: "Updates the given ApplicationSet(s)",
 		Example: `
 	# Update ApplicationSet
-	argocd appset update <filename>
+	argocd appset update <filename or URL> (<filename or URL>...)
 		`,
 		Run: func(c *cobra.Command, args []string) {
 			ctx := c.Context()
@@ -185,10 +293,10 @@ func NewApplicationSetDeleteCommand(clientOpts *argocdclient.ClientOptions) *cob
 	)
 	var command = &cobra.Command{
 		Use:   "delete",
-		Short: "Delete an applicationSet",
+		Short: "Delete one or more ApplicationSets",
 		Example: `  
 	# Delete an applicationset
-	argocd appset delete APPNAME
+	argocd appset delete APPSETNAME (APPSETNAME...)
 		`,
 		Run: func(c *cobra.Command, args []string) {
 			ctx := c.Context()
@@ -220,7 +328,7 @@ func NewApplicationSetDeleteCommand(clientOpts *argocdclient.ClientOptions) *cob
 						lowercaseAnswer = strings.ToLower(confirmAnswer)
 					} else {
 						if !isConfirmAll {
-							fmt.Println("Are you sure you want to delete '" + appsetName + "' and all its Applications? [y/n/A] where 'A' is to delete all specified Applications and their resources without prompting")
+							fmt.Println("Are you sure you want to delete '" + appsetName + "' and all its Applications? [y/n/A] where 'A' is to delete all specified ApplicationSets and their Applications without prompting")
 							fmt.Scan(&confirmAnswer)
 							lowercaseAnswer = strings.ToLower(confirmAnswer)
 							if lowercaseAnswer == "a" || lowercaseAnswer == "all" {
@@ -245,7 +353,7 @@ func NewApplicationSetDeleteCommand(clientOpts *argocdclient.ClientOptions) *cob
 			}
 		},
 	}
-	command.Flags().BoolVarP(&noPrompt, "yes", "y", false, "Turn off prompting to confirm cascaded deletion of application resources")
+	command.Flags().BoolVarP(&noPrompt, "yes", "y", false, "Turn off prompting to confirm cascaded deletion of Application resources")
 
 	return command
 }
@@ -280,4 +388,40 @@ func printApplicationSetTable(apps []arogappsetv1.ApplicationSet, output *string
 		_, _ = fmt.Fprintf(w, fmtStr, vals...)
 	}
 	_ = w.Flush()
+}
+
+func getServerForAppSet(appSet *arogappsetv1.ApplicationSet) string {
+	if appSet.Spec.Template.Spec.Destination.Server == "" {
+		return appSet.Spec.Template.Spec.Destination.Name
+	}
+
+	return appSet.Spec.Template.Spec.Destination.Server
+}
+
+func printAppSetSummaryTable(appSet *arogappsetv1.ApplicationSet) {
+	fmt.Printf(printOpFmtStr, "Name:", appSet.Name)
+	fmt.Printf(printOpFmtStr, "Project:", appSet.Spec.Template.Spec.GetProject())
+	fmt.Printf(printOpFmtStr, "Server:", getServerForAppSet(appSet))
+	fmt.Printf(printOpFmtStr, "Namespace:", appSet.Spec.Template.Spec.Destination.Namespace)
+	fmt.Printf(printOpFmtStr, "Repo:", appSet.Spec.Template.Spec.Source.RepoURL)
+	fmt.Printf(printOpFmtStr, "Target:", appSet.Spec.Template.Spec.Source.TargetRevision)
+	fmt.Printf(printOpFmtStr, "Path:", appSet.Spec.Template.Spec.Source.Path)
+	printAppSourceDetails(&appSet.Spec.Template.Spec.Source)
+
+	var syncPolicy string
+	if appSet.Spec.SyncPolicy != nil && appSet.Spec.Template.Spec.SyncPolicy.Automated != nil {
+		syncPolicy = "Automated"
+		if appSet.Spec.Template.Spec.SyncPolicy.Automated.Prune {
+			syncPolicy += " (Prune)"
+		}
+	} else {
+		syncPolicy = "<none>"
+	}
+}
+
+func printAppSetConditions(w io.Writer, appSet *arogappsetv1.ApplicationSet) {
+	_, _ = fmt.Fprintf(w, "CONDITION\tMESSAGE\tLAST TRANSITION\n")
+	for _, item := range appSet.Status.Conditions {
+		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\n", item.Type, item.Message, item.LastTransitionTime)
+	}
 }

@@ -3,7 +3,7 @@ package rbacpolicy
 import (
 	"strings"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
@@ -14,16 +14,16 @@ import (
 
 const (
 	// please add new items to Resources
-	ResourceClusters       = "clusters"
-	ResourceProjects       = "projects"
-	ResourceApplications   = "applications"
-	ResourceApplicationSet = "applicationset"
-	ResourceRepositories   = "repositories"
-	ResourceCertificates   = "certificates"
-	ResourceAccounts       = "accounts"
-	ResourceGPGKeys        = "gpgkeys"
-	ResourceLogs           = "logs"
-	ResourceExec           = "exec"
+	ResourceClusters        = "clusters"
+	ResourceProjects        = "projects"
+	ResourceApplications    = "applications"
+	ResourceApplicationSets = "applicationsets"
+	ResourceRepositories    = "repositories"
+	ResourceCertificates    = "certificates"
+	ResourceAccounts        = "accounts"
+	ResourceGPGKeys         = "gpgkeys"
+	ResourceLogs            = "logs"
+	ResourceExec            = "exec"
 
 	// please add new items to Actions
 	ActionGet      = "get"
@@ -41,7 +41,7 @@ var (
 		ResourceClusters,
 		ResourceProjects,
 		ResourceApplications,
-		ResourceApplicationSet,
+		ResourceApplicationSets,
 		ResourceRepositories,
 		ResourceCertificates,
 		ResourceLogs,

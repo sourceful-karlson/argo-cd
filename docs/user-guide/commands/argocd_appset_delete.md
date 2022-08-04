@@ -1,6 +1,6 @@
 ## argocd appset delete
 
-Delete an applicationSet
+Delete one or more ApplicationSets
 
 ```
 argocd appset delete [flags]
@@ -11,7 +11,7 @@ argocd appset delete [flags]
 ```
   
 	# Delete an applicationset
-	argocd appset delete APPNAME
+	argocd appset delete APPSETNAME (APPSETNAME...)
 		
 ```
 
@@ -19,7 +19,7 @@ argocd appset delete [flags]
 
 ```
   -h, --help   help for delete
-  -y, --yes    Turn off prompting to confirm cascaded deletion of application resources
+  -y, --yes    Turn off prompting to confirm cascaded deletion of Application resources
 ```
 
 ### Options inherited from parent commands
@@ -47,5 +47,5 @@ argocd appset delete [flags]
 
 ### SEE ALSO
 
-* [argocd appset](argocd_appset.md)	 - Manage applicationsets
+* [argocd appset](argocd_appset.md)	 - Manage ApplicationSets
 

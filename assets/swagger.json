@@ -1466,6 +1466,218 @@
         }
       }
     },
+    "/api/v1/applicationsets": {
+      "get": {
+        "tags": [
+          "ApplicationSetService"
+        ],
+        "summary": "List returns list of applicationset",
+        "operationId": "ApplicationSetService_List",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the applicationsets's name.",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "the project names to restrict returned list applicationsets.",
+            "name": "projects",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "when specified with a watch call, shows changes that occur after that particular version of a resource.",
+            "name": "resourceVersion",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the selector to restrict returned list to applicationsets only with matched labels.",
+            "name": "selector",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ApplicationSetList"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ApplicationSetService"
+        ],
+        "summary": "Create creates an applicationset",
+        "operationId": "ApplicationSetService_Create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ApplicationSet"
+            }
+          },
+          {
+            "type": "boolean",
+            "name": "upsert",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ApplicationSet"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicationsets/{applicationset.metadata.name}": {
+      "put": {
+        "tags": [
+          "ApplicationSetService"
+        ],
+        "summary": "Update updates an applicationset",
+        "operationId": "ApplicationSetService_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Name must be unique within a namespace. Is required when creating resources, although\nsome resources may allow a client to request the generation of an appropriate name\nautomatically. Name is primarily intended for creation idempotence and configuration\ndefinition.\nCannot be updated.\nMore info: http://kubernetes.io/docs/user-guide/identifiers#names\n+optional",
+            "name": "applicationset.metadata.name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ApplicationSet"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ApplicationSet"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicationsets/{name}": {
+      "get": {
+        "tags": [
+          "ApplicationSetService"
+        ],
+        "summary": "Get returns an applicationset by name",
+        "operationId": "ApplicationSetService_Get",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the applicationsets's name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "the project names to restrict returned list applicationsets.",
+            "name": "projects",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "when specified with a watch call, shows changes that occur after that particular version of a resource.",
+            "name": "resourceVersion",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "the selector to restrict returned list to applicationsets only with matched labels.",
+            "name": "selector",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ApplicationSet"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ApplicationSetService"
+        ],
+        "summary": "Delete deletes an application set",
+        "operationId": "ApplicationSetService_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/applicationsetApplicationSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        }
+      }
+    },
     "/api/v1/certificates": {
       "get": {
         "tags": [

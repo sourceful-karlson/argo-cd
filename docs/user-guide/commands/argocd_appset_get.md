@@ -1,25 +1,17 @@
-## argocd appset create
+## argocd appset get
 
-Create one or more ApplicationSets
-
-```
-argocd appset create [flags]
-```
-
-### Examples
+Get ApplicationSet details
 
 ```
-
-	# Create ApplicationSets
-	argocd appset create <filename or URL> (<filename or URL>...)
-		
+argocd appset get APPSETNAME [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help     help for create
-      --upsert   Allows to override ApplicationSet with the same name even if supplied ApplicationSet spec is different from existing spec
+  -h, --help            help for get
+  -o, --output string   Output format. One of: json|yaml|wide (default "wide")
+      --show-params     Show ApplicationSet parameters and overrides (for Helm)
 ```
 
 ### Options inherited from parent commands
