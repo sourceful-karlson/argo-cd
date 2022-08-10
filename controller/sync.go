@@ -212,6 +212,21 @@ func (m *appStateManager) SyncAppState(app *v1alpha1.Application, state *v1alpha
 	}
 	trackingMethod := argo.GetTrackingMethod(m.settingsMgr)
 
+	var createNamespaceAnnotations map[string]string
+	var createNamespaceLabels map[string]string
+	createNamespaceMetadata, ok := syncOp.SyncOptions.GetValue("CreateNamespaceMetadata")
+	if ok {
+		metadata := &v1.ObjectMeta{}
+		err = json.Unmarshal([]byte(createNamespaceMetadata), metadata)
+		if err != nil {
+			state.Phase = common.OperationError
+			state.Message = fmt.Sprintf("Failed to unmarshal metadata to be added to auto-created namespace: %s", err)
+			return
+		}
+		createNamespaceAnnotations = metadata.Annotations
+		createNamespaceLabels = metadata.Labels
+	}
+
 	syncCtx, cleanup, err := sync.NewSyncContext(
 		compareResult.syncStatus.Revision,
 		reconciliationResult,
@@ -239,7 +254,7 @@ func (m *appStateManager) SyncAppState(app *v1alpha1.Application, state *v1alpha
 				m.isSelfReferencedObj(live, appLabelKey, trackingMethod)
 		}),
 		sync.WithManifestValidation(!syncOp.SyncOptions.HasOption(common.SyncOptionsDisableValidation)),
-		sync.WithNamespaceCreation(syncOp.SyncOptions.HasOption("CreateNamespace=true"), syncOp.SyncOptions.GetNSMetaData("NamespaceMetaData"), func(un *unstructured.Unstructured) bool {
+		sync.WithNamespaceCreation(syncOp.SyncOptions.HasOption("CreateNamespace=true"), createNamespaceAnnotations, createNamespaceLabels, func(un *unstructured.Unstructured) bool {
 			if un != nil && kube.GetAppInstanceLabel(un, cdcommon.LabelKeyAppInstance) != "" {
 				kube.UnsetLabel(un, cdcommon.LabelKeyAppInstance)
 				return true
