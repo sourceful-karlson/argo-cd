@@ -83,19 +83,21 @@ func (m *appStateManager) SyncAppState(app *v1alpha1.Application, state *v1alpha
 		return
 	}
 
-	if syncOp.Source == nil {
+	if syncOp.Source == nil || (syncOp.Sources != nil && len(syncOp.Sources) > 0) {
 		// normal sync case (where source is taken from app.spec.source)
-		if app.Spec.Sources != nil || len(app.Spec.Sources) > 0 {
+		if app.Spec.Sources != nil && len(app.Spec.Sources) > 0 {
 			sources = app.Spec.Sources
 		} else {
 			source = app.Spec.Source
+			sources = make([]v1alpha1.ApplicationSource, 0)
 		}
 	} else {
 		// rollback case
-		if app.Spec.Sources != nil || len(app.Spec.Sources) > 0 {
+		if app.Spec.Sources != nil && len(app.Spec.Sources) > 0 {
 			sources = state.Operation.Sync.Sources
 		} else {
 			source = *state.Operation.Sync.Source
+			sources = make([]v1alpha1.ApplicationSource, 0)
 		}
 
 	}
@@ -108,7 +110,7 @@ func (m *appStateManager) SyncAppState(app *v1alpha1.Application, state *v1alpha
 		// status.operationState.syncResult.source. must be set properly since auto-sync relies
 		// on this information to decide if it should sync (if source is different than the last
 		// sync attempt)
-		if sources != nil || len(sources) > 0 {
+		if len(sources) > 0 {
 			syncRes.Sources = sources
 		} else {
 			syncRes.Source = source

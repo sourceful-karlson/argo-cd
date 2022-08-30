@@ -124,11 +124,6 @@ func (m *appStateManager) getRepoObjs(app *v1alpha1.Application, source v1alpha1
 	if err != nil {
 		return nil, nil, err
 	}
-	conn, repoClient, err := m.repoClientset.NewRepoServerClient()
-	if err != nil {
-		return nil, nil, err
-	}
-	defer io.Close(conn)
 
 	plugins, err := m.settingsMgr.GetConfigManagementPlugins()
 	if err != nil {
@@ -160,59 +155,6 @@ func (m *appStateManager) getRepoObjs(app *v1alpha1.Application, source v1alpha1
 		return nil, nil, err
 	}
 
-	// manifestResponses := make([]*apiclient.ManifestResponse, 0)
-	// if sources != nil || len(sources) > 0 {
-	// 	for _, s := range sources {
-
-	// 		if s.Path == "" && s.Chart == "" {
-	// 			logCtx := log.WithField("application", app.QualifiedName())
-	// 			logCtx.Infof("No path or chart field found, skipping manifest generation for source %s", s)
-	// 			continue
-	// 		}
-	// 		ts.AddCheckpoint("helm_ms")
-	// 		repo, err := m.db.GetRepository(context.Background(), s.RepoURL)
-	// 		if err != nil {
-	// 			return nil, nil, err
-	// 		}
-	// 		if revision == "" {
-	// 			revision = source.TargetRevision
-	// 		}
-
-	// 		kustomizeOptions, err := kustomizeSettings.GetOptions(s)
-	// 		if err != nil {
-	// 			return nil, nil, err
-	// 		}
-
-	// 		appSources := make([]*appv1.ApplicationSource, 0)
-	// 		for _, s := range sources {
-	// 			appSources = append(appSources, &s)
-	// 		}
-
-	// 		ts.AddCheckpoint("version_ms")
-	// 		manifestInfo, err := repoClient.GenerateManifest(context.Background(), &apiclient.ManifestRequest{
-	// 			Repo:               repo,
-	// 			Repos:              permittedHelmRepos,
-	// 			Revision:           revision,
-	// 			NoCache:            noCache,
-	// 			NoRevisionCache:    noRevisionCache,
-	// 			AppLabelKey:        appLabelKey,
-	// 			AppName:            app.InstanceName(m.namespace),
-	// 			Namespace:          app.Spec.Destination.Namespace,
-	// 			ApplicationSource:  &source,
-	// 			ApplicationSources: appSources,
-	// 			Plugins:            tools,
-	// 			KustomizeOptions:   kustomizeOptions,
-	// 			KubeVersion:        serverVersion,
-	// 			ApiVersions:        argo.APIResourcesToStrings(apiResources, true),
-	// 			VerifySignature:    verifySignature,
-	// 			HelmRepoCreds:      permittedHelmCredentials,
-	// 			TrackingMethod:     string(argo.GetTrackingMethod(m.settingsMgr)),
-	// 			EnabledSourceTypes: enabledSourceTypes,
-	// 			HelmOptions:        helmOptions,
-	// 		})
-	// 		manifestResponses = append(manifestResponses, manifestInfo)
-	// 	}
-	// } else {
 	if revision == "" {
 		revision = source.TargetRevision
 	}
@@ -226,6 +168,17 @@ func (m *appStateManager) getRepoObjs(app *v1alpha1.Application, source v1alpha1
 	if err != nil {
 		return nil, nil, err
 	}
+
+	appSources := make([]*appv1.ApplicationSource, 0)
+	for _, s := range sources {
+		appSources = append(appSources, &s)
+	}
+
+	conn, repoClient, err := m.repoClientset.NewRepoServerClient()
+	if err != nil {
+		return nil, nil, err
+	}
+	defer io.Close(conn)
 	ts.AddCheckpoint("version_ms")
 	manifestInfo, err := repoClient.GenerateManifest(context.Background(), &apiclient.ManifestRequest{
 		Repo:               repo,
@@ -237,6 +190,7 @@ func (m *appStateManager) getRepoObjs(app *v1alpha1.Application, source v1alpha1
 		AppName:            app.InstanceName(m.namespace),
 		Namespace:          app.Spec.Destination.Namespace,
 		ApplicationSource:  &source,
+		ApplicationSources: appSources,
 		Plugins:            tools,
 		KustomizeOptions:   kustomizeOptions,
 		KubeVersion:        serverVersion,
@@ -247,17 +201,12 @@ func (m *appStateManager) getRepoObjs(app *v1alpha1.Application, source v1alpha1
 		EnabledSourceTypes: enabledSourceTypes,
 		HelmOptions:        helmOptions,
 	})
-	// manifestResponses = append(manifestResponses, manifestInfo)
-	// }
+
 	logCtx := log.WithField("application", app.QualifiedName())
 	logCtx.Infof("manifest responses %s", manifestInfo)
 	if err != nil {
 		return nil, nil, err
 	}
-	// manifests := make([]string, 0)
-	// for _, resp := range manifestResponses {
-	// 	manifests = append(manifests, resp.Manifests...)
-	// }
 	targetObjs, err := unmarshalManifests(manifestInfo.Manifests)
 
 	if err != nil {
@@ -429,6 +378,7 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 			failedToLoadObjs = true
 		}
 	} else {
+		log.Debugf("With local Manifests %s", localManifests)
 		// Prevent applying local manifests for now when signature verification is enabled
 		// This is also enforced on API level, but as a last resort, we also enforce it here
 		if gpg.IsGPGEnabled() && verifySignature {
@@ -478,7 +428,6 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 		conditions = append(conditions, v1alpha1.ApplicationCondition{Type: v1alpha1.ApplicationConditionComparisonError, Message: err.Error(), LastTransitionTime: &now})
 		failedToLoadObjs = true
 	}
-	logCtx.Debugf("Retrieved lived manifests")
 
 	// filter out all resources which are not permitted in the application project
 	for k, v := range liveObjByKey {
@@ -515,6 +464,7 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 
 	reconciliation := sync.Reconcile(targetObjs, liveObjByKey, app.Spec.Destination.Namespace, infoProvider)
 	ts.AddCheckpoint("live_ms")
+	logCtx.Debugf("Post sync.Reconcile")
 
 	compareOptions, err := m.settingsMgr.GetResourceCompareOptions()
 	if err != nil {
@@ -525,9 +475,11 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 	// restore comparison using cached diff result if previous comparison was performed for the same revision
 	revisionChanged := manifestInfo == nil || app.Status.Sync.Revision != manifestInfo.Revision
 	specChanged := !reflect.DeepEqual(app.Status.Sync.ComparedTo, appv1.ComparedTo{Source: app.Spec.Source, Destination: app.Spec.Destination, Sources: sources})
+
 	_, refreshRequested := app.IsRefreshRequested()
 	noCache = noCache || refreshRequested || app.Status.Expired(m.statusRefreshTimeout) || specChanged || revisionChanged
 
+	logCtx.Debugf("noCache %s", noCache)
 	diffConfigBuilder := argodiff.NewDiffConfigBuilder().
 		WithDiffSettings(app.Spec.IgnoreDifferences, resourceOverrides, compareOptions.IgnoreAggregatedRoles).
 		WithTracking(appLabelKey, string(trackingMethod))
@@ -647,6 +599,8 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 		resourceSummaries[i] = resState
 	}
 
+	logCtx.Debugf("failedToLoadObjs %s", failedToLoadObjs)
+
 	if failedToLoadObjs {
 		syncCode = v1alpha1.SyncStatusCodeUnknown
 	}
@@ -658,6 +612,7 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 		},
 		Status: syncCode,
 	}
+
 	if manifestInfo != nil {
 		syncStatus.Revision = manifestInfo.Revision
 	}
@@ -695,6 +650,7 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 	})
 	ts.AddCheckpoint("health_ms")
 	compRes.timings = ts.Timings()
+	logCtx.Debugf("CompRes %s", compRes.syncStatus)
 	return &compRes
 }
 

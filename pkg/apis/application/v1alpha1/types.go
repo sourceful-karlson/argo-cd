@@ -75,7 +75,7 @@ type ApplicationSpec struct {
 	RevisionHistoryLimit *int64 `json:"revisionHistoryLimit,omitempty" protobuf:"bytes,7,name=revisionHistoryLimit"`
 
 	// Sources is a reference to the location of the application's manifests or chart
-	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,8,opt,name=sources"`
+	Sources ApplicationSources `json:"sources,omitempty" protobuf:"bytes,8,opt,name=sources"`
 }
 
 type TrackingMethod string
@@ -176,6 +176,9 @@ type ApplicationSource struct {
 	// Ref is reference to another source within sources field
 	Ref string `json:"ref,omitempty" protobuf:"bytes,13,opt,name=ref"`
 }
+
+// ApplicationSources contains list of required information about the sources of an application
+type ApplicationSources []ApplicationSource
 
 // AllowsConcurrentProcessing returns true if given application source can be processed concurrently
 func (a *ApplicationSource) AllowsConcurrentProcessing() bool {
@@ -635,13 +638,13 @@ type SyncOperation struct {
 	// Source overrides the source definition set in the application.
 	// This is typically set in a Rollback operation and is nil during a Sync operation
 	Source *ApplicationSource `json:"source,omitempty" protobuf:"bytes,7,opt,name=source"`
-	// Source overrides the source definition set in the application.
-	// This is typically set in a Rollback operation and is nil during a Sync operation
-	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,8,opt,name=sources"`
 	// Manifests is an optional field that overrides sync source with a local directory for development
-	Manifests []string `json:"manifests,omitempty" protobuf:"bytes,9,opt,name=manifests"`
+	Manifests []string `json:"manifests,omitempty" protobuf:"bytes,8,opt,name=manifests"`
 	// SyncOptions provide per-sync sync-options, e.g. Validate=false
-	SyncOptions SyncOptions `json:"syncOptions,omitempty" protobuf:"bytes,10,opt,name=syncOptions"`
+	SyncOptions SyncOptions `json:"syncOptions,omitempty" protobuf:"bytes,9,opt,name=syncOptions"`
+	// Sources overrides the source definition set in the application.
+	// This is typically set in a Rollback operation and is nil during a Sync operation
+	Sources ApplicationSources `json:"sources,omitempty" protobuf:"bytes,10,opt,name=sources"`
 }
 
 // IsApplyStrategy returns true if the sync strategy is "apply"
@@ -857,8 +860,8 @@ type SyncOperationResult struct {
 	Revision string `json:"revision" protobuf:"bytes,2,opt,name=revision"`
 	// Source records the application source information of the sync, used for comparing auto-sync
 	Source ApplicationSource `json:"source,omitempty" protobuf:"bytes,3,opt,name=source"`
-	// // Source records the application source information of the sync, used for comparing auto-sync
-	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,4,opt,name=sources"`
+	// Source records the application source information of the sync, used for comparing auto-sync
+	Sources ApplicationSources `json:"sources,omitempty" protobuf:"bytes,4,opt,name=sources"`
 }
 
 // ResourceResult holds the operation result details of a specific resource
@@ -931,7 +934,7 @@ type RevisionHistory struct {
 	// DeployStartedAt holds the time the sync operation started
 	DeployStartedAt *metav1.Time `json:"deployStartedAt,omitempty" protobuf:"bytes,7,opt,name=deployStartedAt"`
 	// Source is a reference to the application source used for the sync operation
-	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,8,opt,name=sources"`
+	Sources ApplicationSources `json:"sources,omitempty" protobuf:"bytes,8,opt,name=sources"`
 }
 
 // ApplicationWatchEvent contains information about application change.
@@ -1018,7 +1021,7 @@ type ComparedTo struct {
 	// Destination is a reference to the application's destination used for comparison
 	Destination ApplicationDestination `json:"destination" protobuf:"bytes,2,opt,name=destination"`
 	// Sources is a reference to the application's multiple sources used for comparison
-	Sources []ApplicationSource `json:"sources,omitempty" protobuf:"bytes,3,opt,name=sources"`
+	Sources ApplicationSources `json:"sources,omitempty" protobuf:"bytes,3,opt,name=sources"`
 }
 
 // SyncStatus contains information about the currently observed live and desired states of an application

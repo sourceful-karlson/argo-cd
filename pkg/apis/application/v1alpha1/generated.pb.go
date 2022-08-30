@@ -11007,30 +11007,33 @@ func (m *SignatureKey) Marshal() (dAtA []byte, err error) {
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
-		return nil, err
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintGenerated(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x42
 	}
-	return dAtA[:n], nil
-}
-
-func (m *SignatureKey) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *SignatureKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	i -= len(m.KeyID)
-	copy(dAtA[i:], m.KeyID)
-	i = encodeVarintGenerated(dAtA, i, uint64(len(m.KeyID)))
+	i -= len(m.TeamProject)
+	copy(dAtA[i:], m.TeamProject)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.TeamProject)))
 	i--
-	dAtA[i] = 0xa
+	dAtA[i] = 0x3a
+	i -= len(m.API)
+	copy(dAtA[i:], m.API)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.API)))
+	i--
+	dAtA[i] = 0x32
+	i -= len(m.Organization)
+	copy(dAtA[i:], m.Organization)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Organization)))
+	i--
+	dAtA[i] = 0x2a
 	return len(dAtA) - i, nil
 }
 
-func (m *SyncOperation) Marshal() (dAtA []byte, err error) {
+func (m *SCMProviderGeneratorBitbucket) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -11040,12 +11043,12 @@ func (m *SyncOperation) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SyncOperation) MarshalTo(dAtA []byte) (int, error) {
+func (m *SCMProviderGeneratorBitbucket) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SyncOperation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SCMProviderGeneratorBitbucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -11058,79 +11061,23 @@ func (m *SyncOperation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i--
 			dAtA[i] = 0x4a
 		}
-	}
-	if len(m.Manifests) > 0 {
-		for iNdEx := len(m.Manifests) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Manifests[iNdEx])
-			copy(dAtA[i:], m.Manifests[iNdEx])
-			i = encodeVarintGenerated(dAtA, i, uint64(len(m.Manifests[iNdEx])))
 			i--
 			dAtA[i] = 0x42
 		}
-	}
-	if m.Source != nil {
-		{
-			size, err := m.Source.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintGenerated(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x3a
-	}
-	if len(m.Resources) > 0 {
-		for iNdEx := len(m.Resources) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Resources[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintGenerated(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x32
-		}
-	}
-	if m.SyncStrategy != nil {
-		{
-			size, err := m.SyncStrategy.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintGenerated(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
+	i -= len(m.User)
+	copy(dAtA[i:], m.User)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.User)))
 	i--
-	if m.DryRun {
-		dAtA[i] = 1
-	} else {
-		dAtA[i] = 0
-	}
-	i--
-	dAtA[i] = 0x18
-	i--
-	if m.Prune {
-		dAtA[i] = 1
-	} else {
-		dAtA[i] = 0
-	}
-	i--
-	dAtA[i] = 0x10
-	i -= len(m.Revision)
-	copy(dAtA[i:], m.Revision)
-	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Revision)))
+	dAtA[i] = 0x12
+	i -= len(m.Owner)
+	copy(dAtA[i:], m.Owner)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Owner)))
 	i--
 	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
-func (m *SyncOperationResource) Marshal() (dAtA []byte, err error) {
+func (m *SCMProviderGeneratorBitbucketServer) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -11140,12 +11087,65 @@ func (m *SyncOperationResource) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SyncOperationResource) MarshalTo(dAtA []byte) (int, error) {
+func (m *SCMProviderGeneratorBitbucketServer) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SyncOperationResource) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SCMProviderGeneratorBitbucketServer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	i--
+	if m.AllBranches {
+		dAtA[i] = 1
+	} else {
+		dAtA[i] = 0
+	}
+	i--
+	dAtA[i] = 0x20
+	if m.BasicAuth != nil {
+		{
+			size, err := m.BasicAuth.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintGenerated(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	i -= len(m.API)
+	copy(dAtA[i:], m.API)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.API)))
+	i--
+	dAtA[i] = 0x12
+	i -= len(m.Project)
+	copy(dAtA[i:], m.Project)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Project)))
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *SCMProviderGeneratorFilter) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SCMProviderGeneratorFilter) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SCMProviderGeneratorFilter) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int

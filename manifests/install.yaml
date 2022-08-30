@@ -378,7 +378,7 @@ spec:
                     - repoURL
                     type: object
                   sources:
-                    description: Source overrides the source definition set in the
+                    description: Sources overrides the source definition set in the
                       application. This is typically set in a Rollback operation and
                       is nil during a Sync operation
                     items:
@@ -2184,7 +2184,7 @@ spec:
                             - repoURL
                             type: object
                           sources:
-                            description: Source overrides the source definition set
+                            description: Sources overrides the source definition set
                               in the application. This is typically set in a Rollback
                               operation and is nil during a Sync operation
                             items:
@@ -2791,7 +2791,7 @@ spec:
                         - repoURL
                         type: object
                       sources:
-                        description: // Source records the application source information
+                        description: Source records the application source information
                           of the sync, used for comparing auto-sync
                         items:
                           description: ApplicationSource contains all required information

@@ -228,7 +228,6 @@ func ValidateRepo(
 
 	sourceCondition := make([]argoappv1.ApplicationCondition, 0)
 	if spec.Sources != nil {
-		log.Printf("Reached Here Sources")
 		for _, source := range spec.Sources {
 			sourceCondition, err = validateRepo(
 				ctx,
@@ -248,7 +247,6 @@ func ValidateRepo(
 				settingsMgr)
 		}
 	} else {
-		log.Printf("Reached Here Source")
 		sourceCondition, err = validateRepo(
 			ctx,
 			app,
@@ -293,16 +291,13 @@ func validateRepo(ctx context.Context,
 	conditions := make([]argoappv1.ApplicationCondition, 0)
 	errMessage := ""
 
-	log.Printf("Reached Here")
 	repo, err := db.GetRepository(ctx, source.RepoURL)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Reached Here 1")
 	if err := TestRepoWithKnownType(ctx, repoClient, repo, source.IsHelm(), source.IsHelmOci()); err != nil {
 		errMessage = fmt.Sprintf("repositories not accessible: %v", repo)
 	}
-	log.Printf("Reached Here TestRepo")
 	repoAccessible := false
 
 	if errMessage != "" {
@@ -319,18 +314,12 @@ func validateRepo(ctx context.Context,
 	if err != nil {
 		return nil, fmt.Errorf("error verifying source type: %w", err)
 	}
-	log.Printf("Reached Here repo not accessible")
 
 	// is the repo inaccessible - abort now
 	if !repoAccessible {
 		return conditions, nil
 	}
 
-	// do not generate manifests if path and chart field are not specified
-	// if source.Path == "" && source.Chart == "" {
-	// 	return conditions, nil
-	// }
-	log.Printf("Reached Here 2")
 	conditions = append(conditions, verifyGenerateManifests(
 		ctx,
 		repo,
@@ -383,13 +372,13 @@ func ValidateDestination(ctx context.Context, dest *argoappv1.ApplicationDestina
 func ValidatePermissions(ctx context.Context, spec *argoappv1.ApplicationSpec, proj *argoappv1.AppProject, db db.ArgoDB) ([]argoappv1.ApplicationCondition, error) {
 	conditions := make([]argoappv1.ApplicationCondition, 0)
 
-	if spec.Sources != nil || len(spec.Sources) > 0 {
+	if spec.Sources != nil && len(spec.Sources) > 0 {
 		for _, source := range spec.Sources {
-			sourceCondition, _ := validateSource(&source, conditions, proj)
+			sourceCondition, _ := validateSource(&source, conditions, proj, true)
 			conditions = append(conditions, sourceCondition...)
 		}
 	} else {
-		conditions, _ = validateSource(&spec.Source, conditions, proj)
+		conditions, _ = validateSource(&spec.Source, conditions, proj, false)
 	}
 
 	if len(conditions) > 0 {
@@ -436,14 +425,27 @@ func ValidatePermissions(ctx context.Context, spec *argoappv1.ApplicationSpec, p
 	return conditions, nil
 }
 
-func validateSource(source *argoappv1.ApplicationSource, conditions []argoappv1.ApplicationCondition, proj *argoappv1.AppProject) ([]argoappv1.ApplicationCondition, error) {
-	if source.RepoURL == "" || (source.Path == "" && source.Chart == "") {
-		conditions = append(conditions, argoappv1.ApplicationCondition{
-			Type:    argoappv1.ApplicationConditionInvalidSpecError,
-			Message: "spec.source.repoURL and spec.source.path either spec.source.chart are required",
-		})
-		return conditions, nil
+func validateSource(source *argoappv1.ApplicationSource, conditions []argoappv1.ApplicationCondition, proj *argoappv1.AppProject, hasMultipleSources bool) ([]argoappv1.ApplicationCondition, error) {
+
+	if hasMultipleSources {
+		// We need to check if source in multiple sources has atleast Path or Chart field for generating Manifests or Ref field for using as reference source
+		if source.RepoURL == "" || (source.Path == "" && source.Chart == "" && source.Ref == "") {
+			conditions = append(conditions, argoappv1.ApplicationCondition{
+				Type:    argoappv1.ApplicationConditionInvalidSpecError,
+				Message: fmt.Sprintf("source.repoURL, either source.path or source.chart or source.ref are missing for source %s", source),
+			})
+			return conditions, nil
+		}
+	} else {
+		if source.RepoURL == "" || (source.Path == "" && source.Chart == "") {
+			conditions = append(conditions, argoappv1.ApplicationCondition{
+				Type:    argoappv1.ApplicationConditionInvalidSpecError,
+				Message: "spec.source.repoURL and spec.source.path either spec.source.chart are required",
+			})
+			return conditions, nil
+		}
 	}
+
 	if source.Chart != "" && source.TargetRevision == "" {
 		conditions = append(conditions, argoappv1.ApplicationCondition{
 			Type:    argoappv1.ApplicationConditionInvalidSpecError,
@@ -646,52 +648,38 @@ func NormalizeApplicationSpec(spec *argoappv1.ApplicationSpec) *argoappv1.Applic
 		spec.Project = argoappv1.DefaultAppProjectName
 	}
 
-	if spec.Sources != nil || len(spec.Sources) > 0 {
+	if spec.Sources != nil && len(spec.Sources) > 0 {
 		for _, source := range spec.Sources {
-			// 3. If any app sources are their zero values, then nil out the pointers to the source spec.
-			// This makes it easier for users to switch between app source types if they are not using
-			// any of the source-specific parameters.
-			if source.Kustomize != nil && source.Kustomize.IsZero() {
-				source.Kustomize = nil
-			}
-			if source.Helm != nil && source.Helm.IsZero() {
-				source.Helm = nil
-			}
-			if source.Directory != nil && source.Directory.IsZero() {
-				if source.Directory.Exclude != "" && source.Directory.Include != "" {
-					source.Directory = &argoappv1.ApplicationSourceDirectory{Exclude: source.Directory.Exclude, Include: source.Directory.Include}
-				} else if source.Directory.Exclude != "" {
-					source.Directory = &argoappv1.ApplicationSourceDirectory{Exclude: source.Directory.Exclude}
-				} else if source.Directory.Include != "" {
-					source.Directory = &argoappv1.ApplicationSourceDirectory{Include: source.Directory.Include}
-				} else {
-					source.Directory = nil
-				}
-			}
+			NormalizeSource(&source)
 		}
 	} else {
-		// 3. If any app sources are their zero values, then nil out the pointers to the source spec.
-		// This makes it easier for users to switch between app source types if they are not using
-		// any of the source-specific parameters.
-		if spec.Source.Kustomize != nil && spec.Source.Kustomize.IsZero() {
-			spec.Source.Kustomize = nil
-		}
-		if spec.Source.Helm != nil && spec.Source.Helm.IsZero() {
-			spec.Source.Helm = nil
-		}
-		if spec.Source.Directory != nil && spec.Source.Directory.IsZero() {
-			if spec.Source.Directory.Exclude != "" && spec.Source.Directory.Include != "" {
-				spec.Source.Directory = &argoappv1.ApplicationSourceDirectory{Exclude: spec.Source.Directory.Exclude, Include: spec.Source.Directory.Include}
-			} else if spec.Source.Directory.Exclude != "" {
-				spec.Source.Directory = &argoappv1.ApplicationSourceDirectory{Exclude: spec.Source.Directory.Exclude}
-			} else if spec.Source.Directory.Include != "" {
-				spec.Source.Directory = &argoappv1.ApplicationSourceDirectory{Include: spec.Source.Directory.Include}
-			} else {
-				spec.Source.Directory = nil
-			}
-		}
+		NormalizeSource(&spec.Source)
 	}
 	return spec
+}
+
+func NormalizeSource(source *argoappv1.ApplicationSource) *argoappv1.ApplicationSource {
+	// 3. If any app sources are their zero values, then nil out the pointers to the source spec.
+	// This makes it easier for users to switch between app source types if they are not using
+	// any of the source-specific parameters.
+	if source.Kustomize != nil && source.Kustomize.IsZero() {
+		source.Kustomize = nil
+	}
+	if source.Helm != nil && source.Helm.IsZero() {
+		source.Helm = nil
+	}
+	if source.Directory != nil && source.Directory.IsZero() {
+		if source.Directory.Exclude != "" && source.Directory.Include != "" {
+			source.Directory = &argoappv1.ApplicationSourceDirectory{Exclude: source.Directory.Exclude, Include: source.Directory.Include}
+		} else if source.Directory.Exclude != "" {
+			source.Directory = &argoappv1.ApplicationSourceDirectory{Exclude: source.Directory.Exclude}
+		} else if source.Directory.Include != "" {
+			source.Directory = &argoappv1.ApplicationSourceDirectory{Include: source.Directory.Include}
+		} else {
+			source.Directory = nil
+		}
+	}
+	return source
 }
 
 func GetPermittedReposCredentials(proj *argoappv1.AppProject, repoCreds []*argoappv1.RepoCreds) ([]*argoappv1.RepoCreds, error) {

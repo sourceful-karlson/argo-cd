@@ -1460,25 +1460,20 @@ func (ctrl *ApplicationController) needRefreshAppStatus(app *appv1.Application, 
 	softExpired := app.Status.ReconciledAt == nil || app.Status.ReconciledAt.Add(statusRefreshTimeout).Before(time.Now().UTC())
 	hardExpired := (app.Status.ReconciledAt == nil || app.Status.ReconciledAt.Add(statusHardRefreshTimeout).Before(time.Now().UTC())) && statusHardRefreshTimeout.Seconds() != 0
 
-	log.Printf("needRefreshAppStatus %d", len(app.Spec.Sources))
 	if requestedType, ok := app.IsRefreshRequested(); ok {
 		compareWith = CompareWithLatestForceResolve
 		// user requested app refresh.
 		refreshType = requestedType
 		reason = fmt.Sprintf("%s refresh requested", refreshType)
 	} else {
-		if app.Spec.Sources != nil || len(app.Spec.Sources) > 0 {
-			for _, source := range app.Spec.Sources {
-				if source.Equals(app.Status.Sync.ComparedTo.Source) {
-					reason = "one of the source in spec.sources differs"
-					compareWith = CompareWithLatestForceResolve
-					break
-				}
+		if app.Spec.Sources != nil && len(app.Spec.Sources) > 0 {
+			if (len(app.Spec.Sources) != len(app.Status.Sync.ComparedTo.Sources)) || !reflect.DeepEqual(app.Spec.Sources, app.Status.Sync.ComparedTo.Sources) {
+				reason = "atleast one of the spec.sources differs"
+				compareWith = CompareWithLatestForceResolve
 			}
 		} else if !app.Spec.Source.Equals(app.Status.Sync.ComparedTo.Source) {
 			reason = "spec.source differs"
 			compareWith = CompareWithLatestForceResolve
-
 		} else if hardExpired || softExpired {
 			// The commented line below mysteriously crashes if app.Status.ReconciledAt is nil
 			// reason = fmt.Sprintf("comparison expired. reconciledAt: %v, expiry: %v", app.Status.ReconciledAt, statusRefreshTimeout)
@@ -1590,8 +1585,8 @@ func (ctrl *ApplicationController) persistAppStatus(orig *appv1.Application, new
 		logCtx.Infof("No status changes. Skipping patch")
 		return
 	}
-	logCtx.Debugf("patch: %s", string(patch))
 	appClient := ctrl.applicationClientset.ArgoprojV1alpha1().Applications(orig.Namespace)
+	logCtx.Debugf("Patching change %s", patch)
 	_, err = appClient.Patch(context.Background(), orig.Name, types.MergePatchType, patch, metav1.PatchOptions{})
 	if err != nil {
 		logCtx.Warnf("Error updating application: %v", err)
@@ -1606,6 +1601,9 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 		return nil
 	}
 	logCtx := log.WithFields(log.Fields{"application": app.QualifiedName()})
+
+	logCtx.Debugf("autoSync")
+
 	if app.Operation != nil {
 		logCtx.Infof("Skipping auto-sync: another operation is in progress")
 		return nil
@@ -1635,6 +1633,8 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 			return nil
 		}
 	}
+
+	logCtx.Debugf("Post Pruning check %s", &syncStatus.ComparedTo)
 
 	desiredCommitSHA := syncStatus.Revision
 	alreadyAttempted, attemptPhase := alreadyAttemptedSync(app, desiredCommitSHA)
@@ -1682,6 +1682,8 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 
 	}
 
+	logCtx.Debugf("Post check for autoSync")
+
 	if app.Spec.SyncPolicy.Automated.Prune && !app.Spec.SyncPolicy.Automated.AllowEmpty {
 		bAllNeedPrune := true
 		for _, r := range resources {
@@ -1695,7 +1697,7 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 			return &appv1.ApplicationCondition{Type: appv1.ApplicationConditionSyncError, Message: message}
 		}
 	}
-
+	logCtx.Debugf("Post check for Prune")
 	appIf := ctrl.applicationClientset.ArgoprojV1alpha1().Applications(app.Namespace)
 	_, err := argo.SetAppOperation(appIf, app.Name, &op)
 	if err != nil {
@@ -1717,13 +1719,20 @@ func alreadyAttemptedSync(app *appv1.Application, commitSHA string) (bool, syncc
 	if app.Status.OperationState.SyncResult.Revision != commitSHA {
 		return false, ""
 	}
-	// Ignore differences in target revision, since we already just verified commitSHAs are equal,
-	// and we do not want to trigger auto-sync due to things like HEAD != master
-	specSource := app.Spec.Source.DeepCopy()
-	specSource.TargetRevision = ""
-	syncResSource := app.Status.OperationState.SyncResult.Source.DeepCopy()
-	syncResSource.TargetRevision = ""
-	return reflect.DeepEqual(app.Spec.Source, app.Status.OperationState.SyncResult.Source), app.Status.OperationState.Phase
+
+	if app.Spec.Sources != nil && len(app.Spec.Sources) > 0 {
+		// Ignore differences in target revision, since we already just verified commitSHAs are equal,
+		// and we do not want to trigger auto-sync due to things like HEAD != master
+		return reflect.DeepEqual(app.Spec.Sources, app.Status.OperationState.SyncResult.Sources), app.Status.OperationState.Phase
+	} else {
+		// Ignore differences in target revision, since we already just verified commitSHAs are equal,
+		// and we do not want to trigger auto-sync due to things like HEAD != master
+		specSource := app.Spec.Source.DeepCopy()
+		specSource.TargetRevision = ""
+		syncResSource := app.Status.OperationState.SyncResult.Source.DeepCopy()
+		syncResSource.TargetRevision = ""
+		return reflect.DeepEqual(app.Spec.Source, app.Status.OperationState.SyncResult.Source), app.Status.OperationState.Phase
+	}
 }
 
 func (ctrl *ApplicationController) shouldSelfHeal(app *appv1.Application) (bool, time.Duration) {

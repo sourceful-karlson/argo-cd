@@ -1773,15 +1773,15 @@ message SyncOperation {
   // This is typically set in a Rollback operation and is nil during a Sync operation
   optional ApplicationSource source = 7;
 
-  // Source overrides the source definition set in the application.
-  // This is typically set in a Rollback operation and is nil during a Sync operation
-  repeated ApplicationSource sources = 8;
-
   // Manifests is an optional field that overrides sync source with a local directory for development
-  repeated string manifests = 9;
+  repeated string manifests = 8;
 
   // SyncOptions provide per-sync sync-options, e.g. Validate=false
-  repeated string syncOptions = 10;
+  repeated string syncOptions = 9;
+
+  // Sources overrides the source definition set in the application.
+  // This is typically set in a Rollback operation and is nil during a Sync operation
+  repeated ApplicationSource sources = 10;
 }
 
 // SyncOperationResource contains resources to sync.
@@ -1806,7 +1806,7 @@ message SyncOperationResult {
   // Source records the application source information of the sync, used for comparing auto-sync
   optional ApplicationSource source = 3;
 
-  // // Source records the application source information of the sync, used for comparing auto-sync
+  // Source records the application source information of the sync, used for comparing auto-sync
   repeated ApplicationSource sources = 4;
 }
 

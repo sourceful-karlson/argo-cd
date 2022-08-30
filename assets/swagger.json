@@ -7789,7 +7789,7 @@
         },
         "sources": {
           "type": "array",
-          "title": "Source overrides the source definition set in the application.\nThis is typically set in a Rollback operation and is nil during a Sync operation",
+          "title": "Sources overrides the source definition set in the application.\nThis is typically set in a Rollback operation and is nil during a Sync operation",
           "items": {
             "$ref": "#/definitions/v1alpha1ApplicationSource"
           }
@@ -7844,7 +7844,7 @@
         },
         "sources": {
           "type": "array",
-          "title": "// Source records the application source information of the sync, used for comparing auto-sync",
+          "title": "Source records the application source information of the sync, used for comparing auto-sync",
           "items": {
             "$ref": "#/definitions/v1alpha1ApplicationSource"
           }
