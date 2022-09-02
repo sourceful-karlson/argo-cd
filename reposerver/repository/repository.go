@@ -1041,59 +1041,6 @@ func WithCMPTarExcludedGlobs(excludedGlobs []string) GenerateManifestOpt {
 	}
 }
 
-// func generateManifestFromSource(ctx context.Context, appPath, appName, repoRoot, revision, repo string, appSource *v1alpha1.ApplicationSource, isLocal bool, gitCredsStore git.CredsStore, maxCombinedManifestQuantity resource.Quantity, opt *generateManifestOpt) ([]*unstructured.Unstructured, error) {
-
-// 	var targetObjs []*unstructured.Unstructured
-
-// 	appSourceType, err := GetAppSourceType(ctx, appSource, appPath, appName, q.EnabledSourceTypes, opt.cmpTarExcludedGlobs)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	repoURL := ""
-// 	if appSource.Repo != nil {
-// 		repoURL = q.Repo.Repo
-// 	}
-// 	env := newEnv(q, revision)
-
-// 	switch appSourceType {
-// 	case v1alpha1.ApplicationSourceTypeHelm:
-// 		targetObjs, err = helmTemplate(appPath, repoRoot, env, q, isLocal)
-// 	case v1alpha1.ApplicationSourceTypeKustomize:
-// 		kustomizeBinary := ""
-// 		if q.KustomizeOptions != nil {
-// 			kustomizeBinary = q.KustomizeOptions.BinaryPath
-// 		}
-// 		k := kustomize.NewKustomizeApp(appPath, q.Repo.GetGitCreds(gitCredsStore), repoURL, kustomizeBinary)
-// 		targetObjs, _, err = k.Build(q.ApplicationSource.Kustomize, q.KustomizeOptions, env)
-// 	case v1alpha1.ApplicationSourceTypePlugin:
-// 		if q.ApplicationSource.Plugin != nil && q.ApplicationSource.Plugin.Name != "" {
-// 			log.WithFields(map[string]interface{}{
-// 				"application": q.AppName,
-// 				"plugin":      q.ApplicationSource.Plugin.Name,
-// 			}).Warnf(common.ConfigMapPluginDeprecationWarning)
-
-// 			targetObjs, err = runConfigManagementPlugin(appPath, repoRoot, env, q, q.Repo.GetGitCreds(gitCredsStore))
-// 		} else {
-// 			targetObjs, err = runConfigManagementPluginSidecars(ctx, appPath, repoRoot, env, q, q.Repo.GetGitCreds(gitCredsStore), opt.cmpTarDoneCh, opt.cmpTarExcludedGlobs)
-// 			if err != nil {
-// 				err = fmt.Errorf("plugin sidecar failed. %s", err.Error())
-// 			}
-// 		}
-// 	case v1alpha1.ApplicationSourceTypeDirectory:
-// 		var directory *v1alpha1.ApplicationSourceDirectory
-// 		if directory = q.ApplicationSource.Directory; directory == nil {
-// 			directory = &v1alpha1.ApplicationSourceDirectory{}
-// 		}
-// 		logCtx := log.WithField("application", q.AppName)
-// 		targetObjs, err = findManifests(logCtx, appPath, repoRoot, env, *directory, q.EnabledSourceTypes, maxCombinedManifestQuantity)
-// 	}
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return targetObjs, err
-// }
-
 // GenerateManifests generates manifests from a path. Overrides are applied as a side effect on the given ApplicationSource.
 func GenerateManifests(ctx context.Context, appPath, repoRoot, revision string, q *apiclient.ManifestRequest, isLocal bool, gitCredsStore git.CredsStore, maxCombinedManifestQuantity resource.Quantity, opts ...GenerateManifestOpt) (*apiclient.ManifestResponse, error) {
 	opt := newGenerateManifestOpt(opts...)
@@ -1102,9 +1049,6 @@ func GenerateManifests(ctx context.Context, appPath, repoRoot, revision string, 
 
 	resourceTracking := argo.NewResourceTracking()
 
-	// if q.ApplicationSources != nil && len(q.ApplicationSources) > 0 {
-	// 	targetObjs = append(targetObjs, generateManifestFromSource(ctx, appPath, repoRoot, opt))
-	// }
 	appSourceType, err := GetAppSourceType(ctx, q.ApplicationSource, appPath, q.AppName, q.EnabledSourceTypes, opt.cmpTarExcludedGlobs)
 	if err != nil {
 		return nil, err
@@ -1800,11 +1744,11 @@ func populateHelmAppDetails(res *apiclient.RepoAppDetailsResponse, appPath strin
 		selectedValueFiles = q.Source.Helm.ValueFiles
 
 		for i, file := range selectedValueFiles {
+			// update path of value file if value file is referencing another ApplicationSource
 			if strings.HasPrefix(file, "$") {
 				pathStrings := strings.Split(file, "/")
 				pathStrings[0] = os.Getenv(strings.Split(file, "/")[0])
 				selectedValueFiles[i] = strings.Join(pathStrings, "/")
-				log.Infof(selectedValueFiles[i])
 			}
 		}
 	}

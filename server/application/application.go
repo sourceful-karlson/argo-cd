@@ -167,8 +167,8 @@ func (s *Server) List(ctx context.Context, q *application.ApplicationQuery) (*ap
 	// Filter applications by name
 	newItems = argoutil.FilterByProjects(newItems, q.Projects)
 
-	// // Filter applications by source repo URL
-	// newItems = argoutil.FilterByRepo(newItems, q.GetRepo())
+	// Filter applications by source repo URL
+	newItems = argoutil.FilterByRepo(newItems, q.GetRepo())
 
 	// Sort found applications by name
 	sort.Slice(newItems, func(i, j int) bool {

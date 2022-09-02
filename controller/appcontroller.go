@@ -751,8 +751,6 @@ func (ctrl *ApplicationController) Run(ctx context.Context, statusProcessors int
 func (ctrl *ApplicationController) requestAppRefresh(appName string, compareWith *CompareWith, after *time.Duration) {
 	key := ctrl.toAppKey(appName)
 
-	log.Printf("Reached requestAppRefresh")
-
 	if compareWith != nil && after != nil {
 		ctrl.appComparisonTypeRefreshQueue.AddAfter(fmt.Sprintf("%s/%d", key, compareWith), *after)
 	} else {
@@ -1395,7 +1393,6 @@ func (ctrl *ApplicationController) processAppRefreshQueueItem() (processNext boo
 		revision = app.Status.Sync.Revision
 	}
 	now := metav1.Now()
-	// var compareResult *comparisonResult
 
 	compareResult := ctrl.appStateManager.CompareAppState(app, project, revision, app.Spec.Source, app.Spec.Sources,
 		refreshType == appv1.RefreshTypeHard,
@@ -1586,7 +1583,6 @@ func (ctrl *ApplicationController) persistAppStatus(orig *appv1.Application, new
 		return
 	}
 	appClient := ctrl.applicationClientset.ArgoprojV1alpha1().Applications(orig.Namespace)
-	logCtx.Debugf("Patching change %s", patch)
 	_, err = appClient.Patch(context.Background(), orig.Name, types.MergePatchType, patch, metav1.PatchOptions{})
 	if err != nil {
 		logCtx.Warnf("Error updating application: %v", err)
@@ -1601,8 +1597,6 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 		return nil
 	}
 	logCtx := log.WithFields(log.Fields{"application": app.QualifiedName()})
-
-	logCtx.Debugf("autoSync")
 
 	if app.Operation != nil {
 		logCtx.Infof("Skipping auto-sync: another operation is in progress")
@@ -1633,8 +1627,6 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 			return nil
 		}
 	}
-
-	logCtx.Debugf("Post Pruning check %s", &syncStatus.ComparedTo)
 
 	desiredCommitSHA := syncStatus.Revision
 	alreadyAttempted, attemptPhase := alreadyAttemptedSync(app, desiredCommitSHA)
@@ -1682,8 +1674,6 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 
 	}
 
-	logCtx.Debugf("Post check for autoSync")
-
 	if app.Spec.SyncPolicy.Automated.Prune && !app.Spec.SyncPolicy.Automated.AllowEmpty {
 		bAllNeedPrune := true
 		for _, r := range resources {
@@ -1697,7 +1687,6 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 			return &appv1.ApplicationCondition{Type: appv1.ApplicationConditionSyncError, Message: message}
 		}
 	}
-	logCtx.Debugf("Post check for Prune")
 	appIf := ctrl.applicationClientset.ArgoprojV1alpha1().Applications(app.Namespace)
 	_, err := argo.SetAppOperation(appIf, app.Name, &op)
 	if err != nil {

@@ -202,8 +202,6 @@ func (m *appStateManager) getRepoObjs(app *v1alpha1.Application, source v1alpha1
 		HelmOptions:        helmOptions,
 	})
 
-	logCtx := log.WithField("application", app.QualifiedName())
-	logCtx.Infof("manifest responses %s", manifestInfo)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -214,7 +212,7 @@ func (m *appStateManager) getRepoObjs(app *v1alpha1.Application, source v1alpha1
 	}
 
 	ts.AddCheckpoint("unmarshal_ms")
-	logCtx = log.WithField("application", app.QualifiedName())
+	logCtx := log.WithField("application", app.QualifiedName())
 	for k, v := range ts.Timings() {
 		logCtx = logCtx.WithField(k, v.Milliseconds())
 	}
@@ -378,7 +376,6 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 			failedToLoadObjs = true
 		}
 	} else {
-		log.Debugf("With local Manifests %s", localManifests)
 		// Prevent applying local manifests for now when signature verification is enabled
 		// This is also enforced on API level, but as a last resort, we also enforce it here
 		if gpg.IsGPGEnabled() && verifySignature {
@@ -464,7 +461,6 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 
 	reconciliation := sync.Reconcile(targetObjs, liveObjByKey, app.Spec.Destination.Namespace, infoProvider)
 	ts.AddCheckpoint("live_ms")
-	logCtx.Debugf("Post sync.Reconcile")
 
 	compareOptions, err := m.settingsMgr.GetResourceCompareOptions()
 	if err != nil {
@@ -479,7 +475,6 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 	_, refreshRequested := app.IsRefreshRequested()
 	noCache = noCache || refreshRequested || app.Status.Expired(m.statusRefreshTimeout) || specChanged || revisionChanged
 
-	logCtx.Debugf("noCache %s", noCache)
 	diffConfigBuilder := argodiff.NewDiffConfigBuilder().
 		WithDiffSettings(app.Spec.IgnoreDifferences, resourceOverrides, compareOptions.IgnoreAggregatedRoles).
 		WithTracking(appLabelKey, string(trackingMethod))
@@ -599,8 +594,6 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 		resourceSummaries[i] = resState
 	}
 
-	logCtx.Debugf("failedToLoadObjs %s", failedToLoadObjs)
-
 	if failedToLoadObjs {
 		syncCode = v1alpha1.SyncStatusCodeUnknown
 	}
@@ -650,7 +643,6 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 	})
 	ts.AddCheckpoint("health_ms")
 	compRes.timings = ts.Timings()
-	logCtx.Debugf("CompRes %s", compRes.syncStatus)
 	return &compRes
 }
 
