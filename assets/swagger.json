@@ -6120,8 +6120,11 @@
           }
         },
         "sourceType": {
-          "type": "string",
-          "title": "SourceType specifies the type of this application"
+          "type": "array",
+          "title": "SourceType specifies the type of this application",
+          "items": {
+            "type": "string"
+          }
         },
         "sourceTypes": {
           "type": "array",
