@@ -6160,14 +6160,21 @@ func schema_pkg_apis_application_v1alpha1_SyncOperationResult(ref common.Referen
 					},
 					"revisions": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Revision holds the revision this sync operation was performed to",
-							Default:     "",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "Revisions holds the revision this sync operation was performed for respective indexed source in sources field",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
 						},
 					},
 				},
-				Required: []string{"revision", "revisions"},
+				Required: []string{"revision"},
 			},
 		},
 		Dependencies: []string{

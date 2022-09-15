@@ -2552,9 +2552,11 @@ spec:
                           was performed to
                         type: string
                       revisions:
-                        description: Revision holds the revision this sync operation
-                          was performed to
-                        type: string
+                        description: Revisions holds the revision this sync operation
+                          was performed for respective indexed source in sources field
+                        items:
+                          type: string
+                        type: array
                       source:
                         description: Source records the application source information
                           of the sync, used for comparing auto-sync
@@ -3048,7 +3050,6 @@ spec:
                         type: array
                     required:
                     - revision
-                    - revisions
                     type: object
                 required:
                 - operation

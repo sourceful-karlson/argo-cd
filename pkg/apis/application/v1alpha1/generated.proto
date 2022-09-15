@@ -1809,7 +1809,7 @@ message SyncOperationResult {
   // Source records the application source information of the sync, used for comparing auto-sync
   repeated ApplicationSource sources = 4;
 
-  // Revision holds the revision this sync operation was performed to
+  // Revisions holds the revision this sync operation was performed for respective indexed source in sources field
   repeated string revisions = 5;
 }
 

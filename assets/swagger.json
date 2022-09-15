@@ -7844,7 +7844,7 @@
         },
         "revisions": {
           "type": "array",
-          "title": "Revision holds the revision this sync operation was performed to",
+          "title": "Revisions holds the revision this sync operation was performed for respective indexed source in sources field",
           "items": {
             "type": "string"
           }
