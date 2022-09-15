@@ -2550,6 +2550,10 @@ spec:
                         description: Revision holds the revision this sync operation
                           was performed to
                         type: string
+                      revisions:
+                        description: Revision holds the revision this sync operation
+                          was performed to
+                        type: string
                       source:
                         description: Source records the application source information
                           of the sync, used for comparing auto-sync
@@ -3043,6 +3047,7 @@ spec:
                         type: array
                     required:
                     - revision
+                    - revisions
                     type: object
                 required:
                 - operation
@@ -3100,7 +3105,11 @@ spec:
                 type: array
               sourceType:
                 description: SourceType specifies the type of this application
-                type: string
+                items:
+                  description: ApplicationSourceType specifies the type of the application's
+                    source
+                  type: string
+                type: array
               summary:
                 description: Summary contains a list of URLs and container images
                   used by this application
@@ -3642,6 +3651,12 @@ spec:
                     description: Revision contains information about the revision
                       the comparison has been performed to
                     type: string
+                  revisions:
+                    description: Revisions contains information about the revisions
+                      of multiple sources the comparison has been performed to
+                    items:
+                      type: string
+                    type: array
                   status:
                     description: Status is the sync state of the comparison
                     type: string
