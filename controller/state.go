@@ -344,15 +344,9 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 
 	// return unknown comparison result if basic comparison settings cannot be loaded
 	if err != nil {
-		var source *appv1.ApplicationSource
-		if hasMultipleSources {
-			source = &sources[0]
-		} else {
-			source = nil
-		}
 		return &comparisonResult{
 			syncStatus: &v1alpha1.SyncStatus{
-				ComparedTo: appv1.ComparedTo{Source: *source, Destination: app.Spec.Destination, Sources: sources},
+				ComparedTo: appv1.ComparedTo{Source: sources[0], Destination: app.Spec.Destination, Sources: sources},
 				Status:     appv1.SyncStatusCodeUnknown,
 			},
 			healthStatus: &appv1.HealthStatus{Status: health.HealthStatusUnknown},
@@ -616,14 +610,20 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 	if failedToLoadObjs {
 		syncCode = v1alpha1.SyncStatusCodeUnknown
 	}
+	var revision string
 
+	if !hasMultipleSources && len(manifestRevisions) > 0 {
+		revision = manifestRevisions[0]
+	}
 	syncStatus := v1alpha1.SyncStatus{
 		ComparedTo: appv1.ComparedTo{
 			Source:      app.Spec.Source,
 			Destination: app.Spec.Destination,
 			Sources:     sources,
 		},
-		Status: syncCode,
+		Status:    syncCode,
+		Revisions: manifestRevisions,
+		Revision:  revision,
 	}
 
 	ts.AddCheckpoint("sync_ms")
