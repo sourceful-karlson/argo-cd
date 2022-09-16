@@ -145,6 +145,8 @@ func (m *appStateManager) SyncAppState(app *v1alpha1.Application, state *v1alpha
 		revisions = syncRes.Revisions
 	} else {
 		revisions = append(revisions, revision)
+	} else {
+		revisions = syncRes.Revisions
 	}
 
 	if !app.Spec.HasMultipleSources() {
@@ -339,7 +341,10 @@ func (m *appStateManager) SyncAppState(app *v1alpha1.Application, state *v1alpha
 
 	logEntry.WithField("duration", time.Since(start)).Info("sync/terminate complete")
 
-	logEntry.WithField("duration", time.Since(start)).Infof("revisions %s", compareResult.syncStatus.Revisions)
+	if len(compareResult.syncStatus.Revisions) == 0 {
+		compareResult.syncStatus.Revisions = append(compareResult.syncStatus.Revisions, compareResult.syncStatus.Revision)
+	}
+
 	if !syncOp.DryRun && len(syncOp.Resources) == 0 && state.Phase.Successful() {
 		err := m.persistRevisionHistory(app, compareResult.syncStatus.Revision, source, compareResult.syncStatus.Revisions, compareResult.syncStatus.ComparedTo.Sources, app.Spec.HasMultipleSources(), state.StartedAt)
 		if err != nil {
