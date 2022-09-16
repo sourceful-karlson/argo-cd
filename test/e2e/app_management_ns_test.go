@@ -2171,7 +2171,7 @@ func TestNamespacedDisableManifestGeneration(t *testing.T) {
 		Refresh(RefreshTypeHard).
 		Then().
 		And(func(app *Application) {
-			assert.Equal(t, app.Status.SourceType, ApplicationSourceTypeKustomize)
+			assert.Equal(t, app.Status.SourceType, []ApplicationSourceType{ApplicationSourceTypeKustomize})
 		}).
 		When().
 		And(func() {
@@ -2185,7 +2185,7 @@ func TestNamespacedDisableManifestGeneration(t *testing.T) {
 			time.Sleep(1 * time.Second)
 		}).
 		And(func(app *Application) {
-			assert.Equal(t, app.Status.SourceType, ApplicationSourceTypeDirectory)
+			assert.Equal(t, app.Status.SourceType, []ApplicationSourceType{ApplicationSourceTypeDirectory})
 		})
 }
 

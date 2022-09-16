@@ -348,6 +348,7 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 			syncStatus: &v1alpha1.SyncStatus{
 				ComparedTo: appv1.ComparedTo{Source: sources[0], Destination: app.Spec.Destination, Sources: sources},
 				Status:     appv1.SyncStatusCodeUnknown,
+				Revisions:  revisions,
 			},
 			healthStatus: &appv1.HealthStatus{Status: health.HealthStatusUnknown},
 		}
