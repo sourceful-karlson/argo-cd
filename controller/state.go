@@ -432,6 +432,8 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 		failedToLoadObjs = true
 	}
 
+	logCtx.Debugf("Retrieved lived manifests")
+
 	// filter out all resources which are not permitted in the application project
 	for k, v := range liveObjByKey {
 		permitted, err := project.IsLiveResourcePermitted(v, app.Spec.Destination.Server, app.Spec.Destination.Name, func(project string) ([]*appv1.Cluster, error) {
@@ -475,12 +477,10 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, project *ap
 	}
 	manifestRevisions := make([]string, 0)
 
-	logCtx.Infof("manifestInfoMap %s", manifestInfoMap)
 	for _, manifestInfo := range manifestInfoMap {
 		manifestRevisions = append(manifestRevisions, manifestInfo.Revision)
 	}
 
-	logCtx.Infof("manifestRevisions %s", manifestRevisions)
 	// restore comparison using cached diff result if previous comparison was performed for the same revision
 	revisionChanged := len(manifestInfoMap) != len(sources) || !reflect.DeepEqual(app.Status.Sync.Revisions, manifestRevisions)
 	specChanged := !reflect.DeepEqual(app.Status.Sync.ComparedTo, appv1.ComparedTo{Source: app.Spec.Source, Destination: app.Spec.Destination, Sources: sources})

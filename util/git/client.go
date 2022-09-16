@@ -337,7 +337,6 @@ func (m *nativeGitClient) Fetch(revision string) error {
 	var err error
 
 	err = m.fetch(revision)
-	log.Debugf("Fetch error %s", err)
 	if err != nil {
 		errMsg := strings.ReplaceAll(err.Error(), "\n", "")
 		if strings.Contains(errMsg, "try running 'git remote prune origin'") {
