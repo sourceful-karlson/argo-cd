@@ -8,6 +8,7 @@ import {AppContext} from '../../../shared/context';
 import * as models from '../../../shared/models';
 import {services} from '../../../shared/services';
 import * as utils from '../utils';
+import {getAppDefaultSource} from "../utils";
 
 require('./application-operation-state.scss');
 
@@ -51,6 +52,8 @@ const Filter = (props: {filters: string[]; setFilters: (f: string[]) => void; op
 };
 
 export const ApplicationOperationState: React.StatelessComponent<Props> = ({application, operationState}, ctx: AppContext) => {
+    const source = getAppDefaultSource(application);
+
     const operationAttributes = [
         {title: 'OPERATION', value: utils.getOperationType(application)},
         {title: 'PHASE', value: operationState.phase},
@@ -93,7 +96,7 @@ export const ApplicationOperationState: React.StatelessComponent<Props> = ({appl
         });
     }
     if (operationState.syncResult) {
-        operationAttributes.push({title: 'REVISION', value: <Revision repoUrl={application.spec.source.repoURL} revision={operationState.syncResult.revision} />});
+        operationAttributes.push({title: 'REVISION', value: <Revision repoUrl={source.repoURL} revision={operationState.syncResult.revision} />});
     }
     let initiator = '';
     if (operationState.operation.initiatedBy) {

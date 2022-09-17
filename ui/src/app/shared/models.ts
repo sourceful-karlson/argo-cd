@@ -249,6 +249,7 @@ export interface Info {
 export interface ApplicationSpec {
     project: string;
     source: ApplicationSource;
+    sources: ApplicationSource[];
     destination: ApplicationDestination;
     syncPolicy?: SyncPolicy;
     ignoreDifferences?: ResourceIgnoreDifferences[];

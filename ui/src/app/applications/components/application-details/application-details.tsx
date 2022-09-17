@@ -23,7 +23,7 @@ import {ResourceDetails} from '../resource-details/resource-details';
 import * as AppUtils from '../utils';
 import {ApplicationResourceList} from './application-resource-list';
 import {Filters} from './application-resource-filter';
-import {urlPattern} from '../utils';
+import {getAppDefaultSource, urlPattern} from '../utils';
 import {ResourceStatus} from '../../../shared/models';
 import {ApplicationsDetailsAppDropdown} from './application-details-app-dropdown';
 
@@ -188,6 +188,7 @@ export class ApplicationDetails extends React.Component<RouteComponentProps<{app
                             const conditions = application.status.conditions || [];
                             const syncResourceKey = new URLSearchParams(this.props.history.location.search).get('deploy');
                             const tab = new URLSearchParams(this.props.history.location.search).get('tab');
+                            const source = getAppDefaultSource(application);
 
                             const resourceNodes = (): any[] => {
                                 const statusByKey = new Map<string, models.ResourceStatus>();
@@ -561,7 +562,7 @@ export class ApplicationDetails extends React.Component<RouteComponentProps<{app
                                                                 <div className='row white-box__details-row'>
                                                                     <div className='columns small-3'>SHA:</div>
                                                                     <div className='columns small-9'>
-                                                                        <Revision repoUrl={application.spec.source.repoURL} revision={this.state.revision} />
+                                                                        <Revision repoUrl={source.repoURL} revision={this.state.revision} />
                                                                     </div>
                                                                 </div>
                                                             </div>

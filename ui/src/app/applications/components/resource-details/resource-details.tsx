@@ -21,6 +21,7 @@ import {ResourceIcon} from '../resource-icon';
 import {ResourceLabel} from '../resource-label';
 import * as AppUtils from '../utils';
 import './resource-details.scss';
+import {getAppDefaultSource} from "../utils";
 
 const jsonMergePatch = require('json-merge-patch');
 
@@ -172,9 +173,9 @@ export const ResourceDetails = (props: ResourceDetailsProps) => {
                         key='appDetails'
                         input={application}
                         load={app =>
-                            services.repos.appDetails(app.spec.source, app.metadata.name, app.spec.project).catch(() => ({
+                            services.repos.appDetails(getAppDefaultSource(app), app.metadata.name, app.spec.project).catch(() => ({
                                 type: 'Directory' as AppSourceType,
-                                path: application.spec.source.path
+                                path: getAppDefaultSource(app).path
                             }))
                         }>
                         {(details: RepoAppDetails) => (
