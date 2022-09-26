@@ -11882,24 +11882,16 @@ func (m *SCMProviderGeneratorGitlab) MarshalToSizedBuffer(dAtA []byte) (int, err
 	copy(dAtA[i:], m.API)
 	i = encodeVarintGenerated(dAtA, i, uint64(len(m.API)))
 	i--
-	dAtA[i] = 0x1a
+	dAtA[i] = 0x32
+	i -= len(m.Organization)
+	copy(dAtA[i:], m.Organization)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Organization)))
 	i--
-	if m.IncludeSubgroups {
-		dAtA[i] = 1
-	} else {
-		dAtA[i] = 0
-	}
-	i--
-	dAtA[i] = 0x10
-	i -= len(m.Group)
-	copy(dAtA[i:], m.Group)
-	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Group)))
-	i--
-	dAtA[i] = 0xa
+	dAtA[i] = 0x2a
 	return len(dAtA) - i, nil
-}
+			copy(dAtA[i:], m.SyncOptions[iNdEx])
 
-func (m *SecretRef) Marshal() (dAtA []byte, err error) {
+func (m *SCMProviderGeneratorBitbucket) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -11909,30 +11901,50 @@ func (m *SecretRef) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SecretRef) MarshalTo(dAtA []byte) (int, error) {
+func (m *SCMProviderGeneratorBitbucket) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SecretRef) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SCMProviderGeneratorBitbucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	i -= len(m.Key)
-	copy(dAtA[i:], m.Key)
-	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Key)))
+	i--
+	if m.AllBranches {
+		dAtA[i] = 1
+	} else {
+		dAtA[i] = 0
+	}
+	i--
+	dAtA[i] = 0x20
+	if m.AppPasswordRef != nil {
+		{
+			size, err := m.AppPasswordRef.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintGenerated(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	i -= len(m.User)
+	copy(dAtA[i:], m.User)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.User)))
 	i--
 	dAtA[i] = 0x12
-	i -= len(m.SecretName)
-	copy(dAtA[i:], m.SecretName)
-	i = encodeVarintGenerated(dAtA, i, uint64(len(m.SecretName)))
+	i -= len(m.Owner)
+	copy(dAtA[i:], m.Owner)
+	i = encodeVarintGenerated(dAtA, i, uint64(len(m.Owner)))
 	i--
 	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
-func (m *SignatureKey) Marshal() (dAtA []byte, err error) {
+func (m *SyncOperation) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
