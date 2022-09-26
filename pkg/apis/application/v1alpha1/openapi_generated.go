@@ -1814,16 +1814,8 @@ func schema_pkg_apis_application_v1alpha1_ApplicationStatus(ref common.Reference
 					"sourceType": {
 						SchemaProps: spec.SchemaProps{
 							Description: "SourceType specifies the type of this application",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"summary": {

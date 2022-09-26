@@ -1025,8 +1025,9 @@ func (in *ApplicationStatus) DeepCopyInto(out *ApplicationStatus) {
 		in, out := &in.ObservedAt, &out.ObservedAt
 		*out = (*in).DeepCopy()
 	}
-	if in.SourceType != nil {
-		in, out := &in.SourceType, &out.SourceType
+	in.Summary.DeepCopyInto(&out.Summary)
+	if in.SourceTypes != nil {
+		in, out := &in.SourceTypes, &out.SourceTypes
 		*out = make([]ApplicationSourceType, len(*in))
 		copy(*out, *in)
 	}

@@ -499,7 +499,7 @@ message ApplicationStatus {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time observedAt = 8;
 
   // SourceType specifies the type of this application
-  repeated string sourceType = 9;
+  optional string sourceType = 9;
 
   // Summary contains a list of URLs and container images used by this application
   optional ApplicationSummary summary = 10;
