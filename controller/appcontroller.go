@@ -1628,6 +1628,7 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 		return nil
 	}
 
+	hasMultipleSources := app.Spec.Sources != nil && len(app.Spec.Sources) > 0
 	if !app.Spec.SyncPolicy.Automated.Prune {
 		requirePruneOnly := true
 		for _, r := range resources {
