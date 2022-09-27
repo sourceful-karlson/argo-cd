@@ -1,11 +1,11 @@
-import { DataLoader, Tooltip } from 'argo-ui';
+import {DataLoader, Tooltip} from 'argo-ui';
 import * as classNames from 'classnames';
 import * as React from 'react';
 import {Key, KeybindingContext, NumKey, NumKeyToNumber, NumPadKey, useNav} from 'argo-ui/v2';
 import {Cluster} from '../../../shared/components';
 import {Consumer, Context, AuthSettingsCtx} from '../../../shared/context';
 import * as models from '../../../shared/models';
-import { ApplicationURLs } from '../application-urls';
+import {ApplicationURLs} from '../application-urls';
 import * as AppUtils from '../utils';
 import {getAppDefaultSource, OperationState} from '../utils';
 import {services} from '../../../shared/services';
@@ -46,21 +46,21 @@ const useItemsPerContainer = (itemRef: any, containerRef: any): number => {
     return itemsPer || 1;
 };
 
-export const ApplicationTiles = ({ applications, syncApplication, refreshApplication, deleteApplication }: ApplicationTilesProps) => {
+export const ApplicationTiles = ({applications, syncApplication, refreshApplication, deleteApplication}: ApplicationTilesProps) => {
     const [selectedApp, navApp, reset] = useNav(applications.length);
 
     const ctxh = React.useContext(Context);
-    const appRef = { ref: React.useRef(null), set: false };
+    const appRef = {ref: React.useRef(null), set: false};
     const appContainerRef = React.useRef(null);
     const appsPerRow = useItemsPerContainer(appRef.ref, appContainerRef);
     const useAuthSettingsCtx = React.useContext(AuthSettingsCtx);
 
-    const { useKeybinding } = React.useContext(KeybindingContext);
+    const {useKeybinding} = React.useContext(KeybindingContext);
 
-    useKeybinding({ keys: Key.RIGHT, action: () => navApp(1) });
-    useKeybinding({ keys: Key.LEFT, action: () => navApp(-1) });
-    useKeybinding({ keys: Key.DOWN, action: () => navApp(appsPerRow) });
-    useKeybinding({ keys: Key.UP, action: () => navApp(-1 * appsPerRow) });
+    useKeybinding({keys: Key.RIGHT, action: () => navApp(1)});
+    useKeybinding({keys: Key.LEFT, action: () => navApp(-1)});
+    useKeybinding({keys: Key.DOWN, action: () => navApp(appsPerRow)});
+    useKeybinding({keys: Key.UP, action: () => navApp(-1 * appsPerRow)});
 
     useKeybinding({
         keys: Key.ENTER,
@@ -102,9 +102,9 @@ export const ApplicationTiles = ({ applications, syncApplication, refreshApplica
         <Consumer>
             {ctx => (
                 <DataLoader load={() => services.viewPreferences.getPreferences()}>
-                    {pref => {
-                        const favList = pref.appList.favoritesAppList || [];
-                        return (
+                {pref => {
+                    const favList = pref.appList.favoritesAppList || [];
+                    return (
                             <div
                                 className='applications-tiles argo-table-list argo-table-list--clickable row small-up-1 medium-up-2 large-up-3 xxxlarge-up-4'
                                 ref={appContainerRef}>
