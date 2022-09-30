@@ -11,7 +11,6 @@ import (
 
 	"github.com/argoproj/gitops-engine/pkg/cache"
 	"github.com/argoproj/gitops-engine/pkg/utils/kube"
-	"github.com/jsonnet-bundler/jsonnet-bundler/spec/v0"
 	"github.com/r3labs/diff"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -616,7 +615,6 @@ func verifyGenerateManifests(
 	// If source is Kustomize add build options
 	kustomizeSettings, err := settingsMgr.GetKustomizeSettings()
 	if err != nil {
-		errMessage := fmt.Sprintf("Unable to generate manifests in %s: %s", spec.Source.Path, err)
 		conditions = append(conditions, argoappv1.ApplicationCondition{
 			Type:    argoappv1.ApplicationConditionInvalidSpecError,
 			Message: fmt.Sprintf("Error getting Kustomize settings: %v", err),
