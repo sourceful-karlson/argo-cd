@@ -217,9 +217,6 @@ func (a *ApplicationSpec) GetSourcePtr() *ApplicationSource {
 	return a.Source
 }
 
-// ApplicationSources contains list of required information about the sources of an application
-type ApplicationSources []ApplicationSource
-
 // AllowsConcurrentProcessing returns true if given application source can be processed concurrently
 func (a *ApplicationSource) AllowsConcurrentProcessing() bool {
 	switch {
