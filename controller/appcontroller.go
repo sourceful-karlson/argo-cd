@@ -1393,8 +1393,6 @@ func (ctrl *ApplicationController) processAppRefreshQueueItem() (processNext boo
 
 	hasMultipleSources := app.Spec.HasMultipleSources()
 
-	hasMultipleSources := app.Spec.Sources != nil && len(app.Spec.Sources) > 0
-
 	// If we have multiple sources, we use all the sources under `sources` field and ignore source under `source` field.
 	// else we use the source under the source field.
 	if hasMultipleSources {
@@ -1630,7 +1628,6 @@ func (ctrl *ApplicationController) autoSync(app *appv1.Application, syncStatus *
 		return nil
 	}
 
-	hasMultipleSources := app.Spec.Sources != nil && len(app.Spec.Sources) > 0
 	if !app.Spec.SyncPolicy.Automated.Prune {
 		requirePruneOnly := true
 		for _, r := range resources {
