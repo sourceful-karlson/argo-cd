@@ -1933,15 +1933,6 @@ func populateHelmAppDetails(res *apiclient.RepoAppDetailsResponse, appPath strin
 
 	if q.Source.Helm != nil {
 		selectedValueFiles = q.Source.Helm.ValueFiles
-		for i, file := range selectedValueFiles {
-			// update path of value file if value file is referencing another ApplicationSource
-			if strings.HasPrefix(file, "$") {
-				pathStrings := strings.Split(file, "/")
-				key := os.Getenv(strings.Split(file, "/")[0])
-				pathStrings[0] = strings.TrimPrefix(key, "$")
-				selectedValueFiles[i] = strings.Join(pathStrings, "/")
-			}
-		}
 	}
 
 	availableValueFiles, err := findHelmValueFilesInPath(appPath)
