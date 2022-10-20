@@ -12,3 +12,5 @@ yalc.lock
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+.yarn/cache
+.yarn/install-state.gz
