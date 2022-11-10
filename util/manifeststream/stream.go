@@ -9,11 +9,12 @@ import (
 	"io"
 	"os"
 
+	log "github.com/sirupsen/logrus"
+
 	applicationpkg "github.com/argoproj/argo-cd/v2/pkg/apiclient/application"
 	"github.com/argoproj/argo-cd/v2/reposerver/apiclient"
 	"github.com/argoproj/argo-cd/v2/util/io/files"
 	"github.com/argoproj/argo-cd/v2/util/tgzstream"
-	log "github.com/sirupsen/logrus"
 )
 
 // Defines the contract for the application sender, i.e. the CLI
@@ -209,16 +210,20 @@ func receiveFile(ctx context.Context, receiver RepoStreamReceiver, checksum, dst
 		return nil, fmt.Errorf("error creating file: %w", err)
 	}
 	size := 0
+	var ended = false
 	for {
+		if ended {
+			break
+		}
 		if ctx != nil {
 			if err := ctx.Err(); err != nil {
 				return nil, fmt.Errorf("stream context error: %w", err)
 			}
 		}
 		req, err := receiver.Recv()
-		if err != nil {
+		if err != nil && err != io.EOF {
 			if err == io.EOF {
-				break
+				ended = true
 			}
 			return nil, fmt.Errorf("stream Recv error: %w", err)
 		}
