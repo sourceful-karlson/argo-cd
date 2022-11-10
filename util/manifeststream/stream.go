@@ -224,8 +224,9 @@ func receiveFile(ctx context.Context, receiver RepoStreamReceiver, checksum, dst
 		if err != nil && err != io.EOF {
 			if err == io.EOF {
 				ended = true
+			} else {
+				return nil, fmt.Errorf("stream Recv error: %w", err)
 			}
-			return nil, fmt.Errorf("stream Recv error: %w", err)
 		}
 		c := req.GetChunk()
 		if c == nil {
