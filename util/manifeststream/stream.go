@@ -221,8 +221,9 @@ func receiveFile(ctx context.Context, receiver RepoStreamReceiver, checksum, dst
 			}
 		}
 		req, err := receiver.Recv()
-		if err != nil && err != io.EOF {
+		if err != nil {
 			if err == io.EOF {
+				// one more chunk
 				ended = true
 			} else {
 				return nil, fmt.Errorf("stream Recv error: %w", err)
