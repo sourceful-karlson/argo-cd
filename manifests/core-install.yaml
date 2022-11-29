@@ -7577,6 +7577,23 @@ spec:
                                                     type: array
                                                   name:
                                                     type: string
+                                                  parameters:
+                                                    items:
+                                                      properties:
+                                                        array:
+                                                          items:
+                                                            type: string
+                                                          type: array
+                                                        map:
+                                                          additionalProperties:
+                                                            type: string
+                                                          type: object
+                                                        name:
+                                                          type: string
+                                                        string:
+                                                          type: string
+                                                      type: object
+                                                    type: array
                                                 type: object
                                               ref:
                                                 type: string
@@ -9402,6 +9419,23 @@ spec:
                                           type: array
                                         name:
                                           type: string
+                                        parameters:
+                                          items:
+                                            properties:
+                                              array:
+                                                items:
+                                                  type: string
+                                                type: array
+                                              map:
+                                                additionalProperties:
+                                                  type: string
+                                                type: object
+                                              name:
+                                                type: string
+                                              string:
+                                                type: string
+                                            type: object
+                                          type: array
                                       type: object
                                     ref:
                                       type: string
@@ -11457,6 +11491,23 @@ spec:
                                                     type: array
                                                   name:
                                                     type: string
+                                                  parameters:
+                                                    items:
+                                                      properties:
+                                                        array:
+                                                          items:
+                                                            type: string
+                                                          type: array
+                                                        map:
+                                                          additionalProperties:
+                                                            type: string
+                                                          type: object
+                                                        name:
+                                                          type: string
+                                                        string:
+                                                          type: string
+                                                      type: object
+                                                    type: array
                                                 type: object
                                               ref:
                                                 type: string
@@ -12195,6 +12246,23 @@ spec:
                                                     type: array
                                                   name:
                                                     type: string
+                                                  parameters:
+                                                    items:
+                                                      properties:
+                                                        array:
+                                                          items:
+                                                            type: string
+                                                          type: array
+                                                        map:
+                                                          additionalProperties:
+                                                            type: string
+                                                          type: object
+                                                        name:
+                                                          type: string
+                                                        string:
+                                                          type: string
+                                                      type: object
+                                                    type: array
                                                 type: object
                                               ref:
                                                 type: string
@@ -12594,9 +12662,12 @@ spec:
                                         required:
                                         - destination
                                         - project
-                                        - metadata
-                                        - spec
                                         type: object
+                                    required:
+                                    - metadata
+                                    - spec
+                                    type: object
+                                type: object
                               scmProvider:
                                 properties:
                                   azureDevOps:
