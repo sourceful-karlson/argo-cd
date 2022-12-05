@@ -603,12 +603,12 @@ func (s *Service) runManifestGenAsync(ctx context.Context, repoRoot, commitSHA, 
 
 						refSourceMapping, ok := q.RefSources[refVar]
 						if !ok {
+							if len(q.RefSources) == 0 {
+								ch.errCh <- fmt.Errorf("source referenced %q, but no source has a 'ref' field defined", refVar)
+							}
 							refKeys := make([]string, 0)
 							for refKey := range q.RefSources {
 								refKeys = append(refKeys, refKey)
-							}
-							if len(refKeys) == 0 {
-								ch.errCh <- fmt.Errorf("source referenced %q, but no source has a 'ref' field defined", refVar)
 							}
 							ch.errCh <- fmt.Errorf("source referenced %q, which is not one of the available sources (%s)", refVar, strings.Join(refKeys, ", "))
 							return
