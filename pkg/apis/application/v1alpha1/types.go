@@ -192,6 +192,19 @@ func (a *ApplicationSpec) GetSource() ApplicationSource {
 	return ApplicationSource{}
 }
 
+func (a *ApplicationSpec) GetSources() ApplicationSources {
+	if a.HasMultipleSources() {
+		return a.Sources
+	}
+	if a.Source != nil {
+		if a.Source == nil {
+			return ApplicationSources{}
+		}
+		return ApplicationSources{*a.Source}
+	}
+	return ApplicationSources{}
+}
+
 func (a *ApplicationSpec) HasMultipleSources() bool {
 	return a.Sources != nil && len(a.Sources) > 0
 }
