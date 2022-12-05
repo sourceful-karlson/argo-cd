@@ -574,8 +574,9 @@ func (s *Service) runManifestGen(ctx context.Context, repoRoot, commitSHA, cache
 }
 
 type repoRef struct {
-	revision string
-	key      string
+	revision  string
+	commitSHA string
+	key       string
 }
 
 func (s *Service) runManifestGenAsync(ctx context.Context, repoRoot, commitSHA, cacheKey string, opContextSrc operationContextSrc, q *apiclient.ManifestRequest, ch *generateManifestCh) {
@@ -613,7 +614,7 @@ func (s *Service) runManifestGenAsync(ctx context.Context, repoRoot, commitSHA, 
 							return
 						}
 						if refSourceMapping.Chart != "" {
-							log.Error("source %q has a 'chart' field defined, but Helm charts are not yet not supported for 'ref' sources", refSourceMapping.)
+							log.Error("source has a 'chart' field defined, but Helm charts are not yet not supported for 'ref' sources")
 							ch.errCh <- err
 							return
 						}
@@ -625,20 +626,24 @@ func (s *Service) runManifestGenAsync(ctx context.Context, repoRoot, commitSHA, 
 								return
 							}
 						} else {
-							gitClient, targetRevision, err := s.newClientResolveRevision(&refSourceMapping.Repo, refSourceMapping.TargetRevision)
+							gitClient, referencedCommitSHA, err := s.newClientResolveRevision(&refSourceMapping.Repo, refSourceMapping.TargetRevision)
 							if err != nil {
 								ch.errCh <- fmt.Errorf("failed to get git client for repo %s", q.Repo.Repo)
 								return
 							}
-							closer, err := s.repoLock.Lock(gitClient.Root(), targetRevision, true, func() (goio.Closer, error) {
-								return s.checkoutRevision(gitClient, targetRevision, s.initConstants.SubmoduleEnabled)
+							if git.NormalizeGitURL(q.ApplicationSource.RepoURL) == normalizedRepoURL && commitSHA != referencedCommitSHA {
+								ch.errCh <- fmt.Errorf("cannot reference a different revision of the same repository (%s references %q which resolves to %q while the application references %q which resolves to %q)", refVar, refSourceMapping.TargetRevision, referencedCommitSHA, q.Revision, commitSHA)
+								return
+							}
+							closer, err := s.repoLock.Lock(gitClient.Root(), referencedCommitSHA, true, func() (goio.Closer, error) {
+								return s.checkoutRevision(gitClient, referencedCommitSHA, s.initConstants.SubmoduleEnabled)
 							})
 							if err != nil {
 								log.Errorf("failed to acquire lock for referenced source %s", normalizedRepoURL)
 								ch.errCh <- err
 								return
 							}
-							repoRefs[normalizedRepoURL] = repoRef{revision: refSourceMapping.TargetRevision, key: refVar}
+							repoRefs[normalizedRepoURL] = repoRef{revision: refSourceMapping.TargetRevision, commitSHA: referencedCommitSHA, key: refVar}
 							defer func(closer goio.Closer) {
 								err := closer.Close()
 								if err != nil {
