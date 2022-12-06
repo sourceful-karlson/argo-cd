@@ -1207,7 +1207,7 @@ message PullRequestGeneratorGithub {
   repeated string labels = 6;
 }
 
-message RefTargeRevisionMapping {
+message RefTarget {
   optional Repository repo = 1;
 
   optional string targetRevision = 2;
