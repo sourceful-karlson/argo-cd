@@ -579,6 +579,15 @@ func verifyGenerateManifests(
 			Message: errDestinationMissing,
 		})
 	}
+	// If source is Kustomize add build options
+	kustomizeSettings, err := settingsMgr.GetKustomizeSettings()
+	if err != nil {
+		conditions = append(conditions, argoappv1.ApplicationCondition{
+			Type:    argoappv1.ApplicationConditionInvalidSpecError,
+			Message: fmt.Sprintf("Error getting Kustomize settings: %v", err),
+		})
+		return conditions // Can't perform the next check without settings.
+	}
 
 	for _, source := range sources {
 		repoRes, err := db.GetRepository(ctx, source.RepoURL)
@@ -586,15 +595,6 @@ func verifyGenerateManifests(
 			conditions = append(conditions, argoappv1.ApplicationCondition{
 				Type:    argoappv1.ApplicationConditionInvalidSpecError,
 				Message: fmt.Sprintf("Unable to get repository: %v", err),
-			})
-			continue
-		}
-		// If source is Kustomize add build options
-		kustomizeSettings, err := settingsMgr.GetKustomizeSettings()
-		if err != nil {
-			conditions = append(conditions, argoappv1.ApplicationCondition{
-				Type:    argoappv1.ApplicationConditionInvalidSpecError,
-				Message: fmt.Sprintf("Error getting Kustomize settings: %v", err),
 			})
 			continue
 		}
