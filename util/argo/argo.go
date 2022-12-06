@@ -312,6 +312,10 @@ func validateRepo(ctx context.Context,
 		}
 	}
 
+	refSources, err := GetRefSources(ctx, app.Spec, db)
+	if err != nil {
+		return nil, fmt.Errorf("error getting ref sources: %w", err)
+	}
 	conditions = append(conditions, verifyGenerateManifests(
 		ctx,
 		db,
@@ -327,9 +331,32 @@ func validateRepo(ctx context.Context,
 		permittedHelmCredentials,
 		enabledSourceTypes,
 		settingsMgr,
-		app.Spec.HasMultipleSources())...)
+		app.Spec.HasMultipleSources(),
+		refSources)...)
 
 	return conditions, nil
+}
+
+func GetRefSources(ctx context.Context, spec argoappv1.ApplicationSpec, db db.ArgoDB) (map[string]*argoappv1.RefTargeRevisionMapping, error) {
+	refSources := make(map[string]*argoappv1.RefTargeRevisionMapping)
+	if spec.HasMultipleSources() {
+		// Get Repositories for all sources before generating Manifests
+		for _, source := range spec.Sources {
+			if source.Ref != "" {
+				repo, err := db.GetRepository(ctx, source.RepoURL)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get repository %s: %v", source.RepoURL, err)
+				}
+				refKey := "$" + source.Ref
+				refSources[refKey] = &argoappv1.RefTargeRevisionMapping{
+					Repo:           *repo,
+					TargetRevision: source.TargetRevision,
+					Chart:          source.Chart,
+				}
+			}
+		}
+	}
+	return refSources, nil
 }
 
 // ValidateDestination sets the 'Server' value of the ApplicationDestination, if it is not set.
@@ -571,6 +598,7 @@ func verifyGenerateManifests(
 	enableGenerateManifests map[string]bool,
 	settingsMgr *settings.SettingsManager,
 	hasMultipleSources bool,
+	refSources map[string]*argoappv1.RefTargeRevisionMapping,
 ) []argoappv1.ApplicationCondition {
 	var conditions []argoappv1.ApplicationCondition
 	if dest.Server == "" {
@@ -628,10 +656,10 @@ func verifyGenerateManifests(
 			EnabledSourceTypes: enableGenerateManifests,
 			NoRevisionCache:    true,
 			HasMultipleSources: hasMultipleSources,
+			RefSources:         refSources,
 		}
 		req.Repo.CopyCredentialsFromRepo(repoRes)
 		req.Repo.CopySettingsFrom(repoRes)
-		req.RefSources = GetRefSources(sources, *req.Repo, hasMultipleSources)
 
 		// Only check whether we can access the application's path,
 		// and not whether it actually contains any manifests.
@@ -725,24 +753,6 @@ func NormalizeSource(source *argoappv1.ApplicationSource) *argoappv1.Application
 		}
 	}
 	return source
-}
-
-func GetRefSources(sources []argoappv1.ApplicationSource, repo argoappv1.Repository, hasMultipleSources bool) map[string]*argoappv1.RefTargeRevisionMapping {
-	refSources := make(map[string]*argoappv1.RefTargeRevisionMapping)
-	if hasMultipleSources {
-		// Get Repositories for all sources before generating Manifests
-		for _, source := range sources {
-			if source.Ref != "" {
-				refKey := "$" + source.Ref
-				refSources[refKey] = &argoappv1.RefTargeRevisionMapping{
-					Repo:           repo,
-					TargetRevision: source.TargetRevision,
-					Chart:          source.Chart,
-				}
-			}
-		}
-	}
-	return refSources
 }
 
 func GetPermittedReposCredentials(proj *argoappv1.AppProject, repoCreds []*argoappv1.RepoCreds) ([]*argoappv1.RepoCreds, error) {

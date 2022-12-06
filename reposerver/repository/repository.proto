@@ -121,6 +121,7 @@ message RepoServerAppDetailsQuery {
     string trackingMethod = 8;
     map<string, bool> enabledSourceTypes = 9;
     github.com.argoproj.argo_cd.v2.pkg.apis.application.v1alpha1.HelmOptions helmOptions = 10;
+    map<string, github.com.argoproj.argo_cd.v2.pkg.apis.application.v1alpha1.RefTargeRevisionMapping> refSources = 11;
 }
 
 // RepoAppDetailsResponse application details
