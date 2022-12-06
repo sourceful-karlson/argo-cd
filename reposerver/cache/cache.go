@@ -62,11 +62,37 @@ func AddCacheFlagsToCmd(cmd *cobra.Command, opts ...func(client *redis.Client)) 
 	}
 }
 
-func appSourceKey(appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping) uint32 {
+type refTargetForCacheKey struct {
+	RepoURL        string `json:"repoURL"`
+	Project        string `json:"project"`
+	TargetRevision string `json:"targetRevision"`
+	Chart          string `json:"chart"`
+}
+
+func refTargetForCacheKeyFromRefTarget(refTarget *appv1.RefTarget) refTargetForCacheKey {
+	return refTargetForCacheKey{
+		RepoURL:        refTarget.Repo.Repo,
+		Project:        refTarget.Repo.Project,
+		TargetRevision: refTarget.TargetRevision,
+		Chart:          refTarget.Chart,
+	}
+}
+
+type refTargetRevisionMappingForCacheKey map[string]refTargetForCacheKey
+
+func getRefTargetRevisionMappingForCacheKey(refTargetRevisionMapping appv1.RefTargetRevisionMapping) refTargetRevisionMappingForCacheKey {
+	res := make(refTargetRevisionMappingForCacheKey)
+	for k, v := range refTargetRevisionMapping {
+		res[k] = refTargetForCacheKeyFromRefTarget(v)
+	}
+	return res
+}
+
+func appSourceKey(appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping) uint32 {
 	return hash.FNVa(appSourceKeyJSON(appSrc, srcRefs))
 }
 
-func appSourceKeyJSON(appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping) string {
+func appSourceKeyJSON(appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping) string {
 	appSrc = appSrc.DeepCopy()
 	if !appSrc.IsHelm() {
 		appSrc.RepoURL = ""        // superseded by commitSHA
@@ -74,10 +100,10 @@ func appSourceKeyJSON(appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1
 	}
 	appSrcStr, _ := json.Marshal(struct {
 		appSrc  *appv1.ApplicationSource
-		srcRefs map[string]*appv1.RefTargeRevisionMapping
+		srcRefs refTargetRevisionMappingForCacheKey
 	}{
 		appSrc:  appSrc,
-		srcRefs: srcRefs,
+		srcRefs: getRefTargetRevisionMappingForCacheKey(srcRefs),
 	})
 	return string(appSrcStr)
 }
@@ -155,7 +181,7 @@ func (c *Cache) GetGitReferences(repo string, references *[]*plumbing.Reference)
 	return nil
 }
 
-func manifestCacheKey(revision string, appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping, namespace string, trackingMethod string, appLabelKey string, appName string, info ClusterRuntimeInfo) string {
+func manifestCacheKey(revision string, appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping, namespace string, trackingMethod string, appLabelKey string, appName string, info ClusterRuntimeInfo) string {
 	trackingKey := trackingKey(appLabelKey, trackingMethod)
 	return fmt.Sprintf("mfst|%s|%s|%s|%s|%d", trackingKey, appName, revision, namespace, appSourceKey(appSrc, srcRefs)+clusterRuntimeInfoKey(info))
 }
@@ -170,7 +196,7 @@ func trackingKey(appLabelKey string, trackingMethod string) string {
 
 // LogDebugManifestCacheKeyFields logs all the information included in a manifest cache key. It's intended to be run
 // before every manifest cache operation to help debug cache misses.
-func LogDebugManifestCacheKeyFields(message string, reason string, revision string, appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping, clusterInfo ClusterRuntimeInfo, namespace string, trackingMethod string, appLabelKey string, appName string) {
+func LogDebugManifestCacheKeyFields(message string, reason string, revision string, appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping, clusterInfo ClusterRuntimeInfo, namespace string, trackingMethod string, appLabelKey string, appName string) {
 	if log.IsLevelEnabled(log.DebugLevel) {
 		log.WithFields(log.Fields{
 			"revision":    revision,
@@ -184,7 +210,7 @@ func LogDebugManifestCacheKeyFields(message string, reason string, revision stri
 	}
 }
 
-func (c *Cache) GetManifests(revision string, appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping, clusterInfo ClusterRuntimeInfo, namespace string, trackingMethod string, appLabelKey string, appName string, res *CachedManifestResponse) error {
+func (c *Cache) GetManifests(revision string, appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping, clusterInfo ClusterRuntimeInfo, namespace string, trackingMethod string, appLabelKey string, appName string, res *CachedManifestResponse) error {
 	err := c.cache.GetItem(manifestCacheKey(revision, appSrc, srcRefs, namespace, trackingMethod, appLabelKey, appName, clusterInfo), res)
 
 	if err != nil {
@@ -217,7 +243,7 @@ func (c *Cache) GetManifests(revision string, appSrc *appv1.ApplicationSource, s
 	return nil
 }
 
-func (c *Cache) SetManifests(revision string, appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping, clusterInfo ClusterRuntimeInfo, namespace string, trackingMethod string, appLabelKey string, appName string, res *CachedManifestResponse) error {
+func (c *Cache) SetManifests(revision string, appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping, clusterInfo ClusterRuntimeInfo, namespace string, trackingMethod string, appLabelKey string, appName string, res *CachedManifestResponse) error {
 	// Generate and apply the cache entry hash, before writing
 	if res != nil {
 		res = res.shallowCopy()
@@ -231,22 +257,22 @@ func (c *Cache) SetManifests(revision string, appSrc *appv1.ApplicationSource, s
 	return c.cache.SetItem(manifestCacheKey(revision, appSrc, srcRefs, namespace, trackingMethod, appLabelKey, appName, clusterInfo), res, c.repoCacheExpiration, res == nil)
 }
 
-func (c *Cache) DeleteManifests(revision string, appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping, clusterInfo ClusterRuntimeInfo, namespace, trackingMethod, appLabelKey, appName string) error {
+func (c *Cache) DeleteManifests(revision string, appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping, clusterInfo ClusterRuntimeInfo, namespace, trackingMethod, appLabelKey, appName string) error {
 	return c.cache.SetItem(manifestCacheKey(revision, appSrc, srcRefs, namespace, trackingMethod, appLabelKey, appName, clusterInfo), "", c.repoCacheExpiration, true)
 }
 
-func appDetailsCacheKey(revision string, appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping, trackingMethod appv1.TrackingMethod) string {
+func appDetailsCacheKey(revision string, appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping, trackingMethod appv1.TrackingMethod) string {
 	if trackingMethod == "" {
 		trackingMethod = argo.TrackingMethodLabel
 	}
 	return fmt.Sprintf("appdetails|%s|%d|%s", revision, appSourceKey(appSrc, srcRefs), trackingMethod)
 }
 
-func (c *Cache) GetAppDetails(revision string, appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping, res *apiclient.RepoAppDetailsResponse, trackingMethod appv1.TrackingMethod) error {
+func (c *Cache) GetAppDetails(revision string, appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping, res *apiclient.RepoAppDetailsResponse, trackingMethod appv1.TrackingMethod) error {
 	return c.cache.GetItem(appDetailsCacheKey(revision, appSrc, srcRefs, trackingMethod), res)
 }
 
-func (c *Cache) SetAppDetails(revision string, appSrc *appv1.ApplicationSource, srcRefs map[string]*appv1.RefTargeRevisionMapping, res *apiclient.RepoAppDetailsResponse, trackingMethod appv1.TrackingMethod) error {
+func (c *Cache) SetAppDetails(revision string, appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping, res *apiclient.RepoAppDetailsResponse, trackingMethod appv1.TrackingMethod) error {
 	return c.cache.SetItem(appDetailsCacheKey(revision, appSrc, srcRefs, trackingMethod), res, c.repoCacheExpiration, res == nil)
 }
 

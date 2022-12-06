@@ -337,8 +337,8 @@ func validateRepo(ctx context.Context,
 	return conditions, nil
 }
 
-func GetRefSources(ctx context.Context, spec argoappv1.ApplicationSpec, db db.ArgoDB) (map[string]*argoappv1.RefTargeRevisionMapping, error) {
-	refSources := make(map[string]*argoappv1.RefTargeRevisionMapping)
+func GetRefSources(ctx context.Context, spec argoappv1.ApplicationSpec, db db.ArgoDB) (argoappv1.RefTargetRevisionMapping, error) {
+	refSources := make(argoappv1.RefTargetRevisionMapping)
 	if spec.HasMultipleSources() {
 		// Get Repositories for all sources before generating Manifests
 		for _, source := range spec.Sources {
@@ -348,7 +348,7 @@ func GetRefSources(ctx context.Context, spec argoappv1.ApplicationSpec, db db.Ar
 					return nil, fmt.Errorf("failed to get repository %s: %v", source.RepoURL, err)
 				}
 				refKey := "$" + source.Ref
-				refSources[refKey] = &argoappv1.RefTargeRevisionMapping{
+				refSources[refKey] = &argoappv1.RefTarget{
 					Repo:           *repo,
 					TargetRevision: source.TargetRevision,
 					Chart:          source.Chart,
@@ -598,7 +598,7 @@ func verifyGenerateManifests(
 	enableGenerateManifests map[string]bool,
 	settingsMgr *settings.SettingsManager,
 	hasMultipleSources bool,
-	refSources map[string]*argoappv1.RefTargeRevisionMapping,
+	refSources argoappv1.RefTargetRevisionMapping,
 ) []argoappv1.ApplicationCondition {
 	var conditions []argoappv1.ApplicationCondition
 	if dest.Server == "" {

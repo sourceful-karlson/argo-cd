@@ -50,9 +50,9 @@ type ManifestRequest struct {
 	TrackingMethod       string                                       `protobuf:"bytes,20,opt,name=trackingMethod,proto3" json:"trackingMethod,omitempty"`
 	EnabledSourceTypes   map[string]bool                              `protobuf:"bytes,21,rep,name=enabledSourceTypes,proto3" json:"enabledSourceTypes,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
 	HelmOptions          *v1alpha1.HelmOptions                        `protobuf:"bytes,22,opt,name=helmOptions,proto3" json:"helmOptions,omitempty"`
-	HasMultipleSources   bool                                         `protobuf:"varint,23,opt,name=hasMultipleSources,proto3" json:"hasMultipleSources,omitempty"`
-	RefSources           map[string]*v1alpha1.RefTargeRevisionMapping `protobuf:"bytes,24,rep,name=refSources,proto3" json:"refSources,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}                                     `json:"-"`
+	HasMultipleSources   bool                           `protobuf:"varint,23,opt,name=hasMultipleSources,proto3" json:"hasMultipleSources,omitempty"`
+	RefSources           map[string]*v1alpha1.RefTarget `protobuf:"bytes,24,rep,name=refSources,proto3" json:"refSources,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}                       `json:"-"`
 	XXX_unrecognized     []byte                                       `json:"-"`
 	XXX_sizecache        int32                                        `json:"-"`
 }
@@ -223,7 +223,7 @@ func (m *ManifestRequest) GetHasMultipleSources() bool {
 	return false
 }
 
-func (m *ManifestRequest) GetRefSources() map[string]*v1alpha1.RefTargeRevisionMapping {
+func (m *ManifestRequest) GetRefSources() map[string]*v1alpha1.RefTarget {
 	if m != nil {
 		return m.RefSources
 	}
@@ -968,9 +968,9 @@ type RepoServerAppDetailsQuery struct {
 	NoRevisionCache      bool                                         `protobuf:"varint,7,opt,name=noRevisionCache,proto3" json:"noRevisionCache,omitempty"`
 	TrackingMethod       string                                       `protobuf:"bytes,8,opt,name=trackingMethod,proto3" json:"trackingMethod,omitempty"`
 	EnabledSourceTypes   map[string]bool                              `protobuf:"bytes,9,rep,name=enabledSourceTypes,proto3" json:"enabledSourceTypes,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
-	HelmOptions          *v1alpha1.HelmOptions                        `protobuf:"bytes,10,opt,name=helmOptions,proto3" json:"helmOptions,omitempty"`
-	RefSources           map[string]*v1alpha1.RefTargeRevisionMapping `protobuf:"bytes,11,rep,name=refSources,proto3" json:"refSources,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}                                     `json:"-"`
+	HelmOptions          *v1alpha1.HelmOptions          `protobuf:"bytes,10,opt,name=helmOptions,proto3" json:"helmOptions,omitempty"`
+	RefSources           map[string]*v1alpha1.RefTarget `protobuf:"bytes,11,rep,name=refSources,proto3" json:"refSources,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}                       `json:"-"`
 	XXX_unrecognized     []byte                                       `json:"-"`
 	XXX_sizecache        int32                                        `json:"-"`
 }
@@ -1078,7 +1078,7 @@ func (m *RepoServerAppDetailsQuery) GetHelmOptions() *v1alpha1.HelmOptions {
 	return nil
 }
 
-func (m *RepoServerAppDetailsQuery) GetRefSources() map[string]*v1alpha1.RefTargeRevisionMapping {
+func (m *RepoServerAppDetailsQuery) GetRefSources() map[string]*v1alpha1.RefTarget {
 	if m != nil {
 		return m.RefSources
 	}
@@ -1726,7 +1726,7 @@ func (m *HelmChartsResponse) GetItems() []*HelmChart {
 func init() {
 	proto.RegisterType((*ManifestRequest)(nil), "repository.ManifestRequest")
 	proto.RegisterMapType((map[string]bool)(nil), "repository.ManifestRequest.EnabledSourceTypesEntry")
-	proto.RegisterMapType((map[string]*v1alpha1.RefTargeRevisionMapping)(nil), "repository.ManifestRequest.RefSourcesEntry")
+	proto.RegisterMapType((map[string]*v1alpha1.RefTarget)(nil), "repository.ManifestRequest.RefSourcesEntry")
 	proto.RegisterType((*ManifestRequestWithFiles)(nil), "repository.ManifestRequestWithFiles")
 	proto.RegisterType((*ManifestFileMetadata)(nil), "repository.ManifestFileMetadata")
 	proto.RegisterType((*ManifestFileChunk)(nil), "repository.ManifestFileChunk")
@@ -1743,7 +1743,7 @@ func init() {
 	proto.RegisterMapType((map[string]string)(nil), "repository.AppList.AppsEntry")
 	proto.RegisterType((*RepoServerAppDetailsQuery)(nil), "repository.RepoServerAppDetailsQuery")
 	proto.RegisterMapType((map[string]bool)(nil), "repository.RepoServerAppDetailsQuery.EnabledSourceTypesEntry")
-	proto.RegisterMapType((map[string]*v1alpha1.RefTargeRevisionMapping)(nil), "repository.RepoServerAppDetailsQuery.RefSourcesEntry")
+	proto.RegisterMapType((map[string]*v1alpha1.RefTarget)(nil), "repository.RepoServerAppDetailsQuery.RefSourcesEntry")
 	proto.RegisterType((*RepoAppDetailsResponse)(nil), "repository.RepoAppDetailsResponse")
 	proto.RegisterType((*RepoServerRevisionMetadataRequest)(nil), "repository.RepoServerRevisionMetadataRequest")
 	proto.RegisterType((*HelmAppSpec)(nil), "repository.HelmAppSpec")
@@ -5367,10 +5367,10 @@ func (m *ManifestRequest) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.RefSources == nil {
-				m.RefSources = make(map[string]*v1alpha1.RefTargeRevisionMapping)
+				m.RefSources = make(map[string]*v1alpha1.RefTarget)
 			}
 			var mapkey string
-			var mapvalue *v1alpha1.RefTargeRevisionMapping
+			var mapvalue *v1alpha1.RefTarget
 			for iNdEx < postIndex {
 				entryPreIndex := iNdEx
 				var wire uint64
@@ -5444,7 +5444,7 @@ func (m *ManifestRequest) Unmarshal(dAtA []byte) error {
 					if postmsgIndex > l {
 						return io.ErrUnexpectedEOF
 					}
-					mapvalue = &v1alpha1.RefTargeRevisionMapping{}
+					mapvalue = &v1alpha1.RefTarget{}
 					if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
 						return err
 					}
@@ -7572,10 +7572,10 @@ func (m *RepoServerAppDetailsQuery) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.RefSources == nil {
-				m.RefSources = make(map[string]*v1alpha1.RefTargeRevisionMapping)
+				m.RefSources = make(map[string]*v1alpha1.RefTarget)
 			}
 			var mapkey string
-			var mapvalue *v1alpha1.RefTargeRevisionMapping
+			var mapvalue *v1alpha1.RefTarget
 			for iNdEx < postIndex {
 				entryPreIndex := iNdEx
 				var wire uint64
@@ -7649,7 +7649,7 @@ func (m *RepoServerAppDetailsQuery) Unmarshal(dAtA []byte) error {
 					if postmsgIndex > l {
 						return io.ErrUnexpectedEOF
 					}
-					mapvalue = &v1alpha1.RefTargeRevisionMapping{}
+					mapvalue = &v1alpha1.RefTarget{}
 					if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
 						return err
 					}

@@ -99,7 +99,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.PullRequestGeneratorGitLab":          schema_pkg_apis_application_v1alpha1_PullRequestGeneratorGitLab(ref),
 		"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.PullRequestGeneratorGitea":           schema_pkg_apis_application_v1alpha1_PullRequestGeneratorGitea(ref),
 		"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.PullRequestGeneratorGithub":          schema_pkg_apis_application_v1alpha1_PullRequestGeneratorGithub(ref),
-		"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.RefTargeRevisionMapping":             schema_pkg_apis_application_v1alpha1_RefTargeRevisionMapping(ref),
+		"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.RefTarget":             schema_pkg_apis_application_v1alpha1_RefTargeRevisionMapping(ref),
 		"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.RepoCreds":                           schema_pkg_apis_application_v1alpha1_RepoCreds(ref),
 		"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.RepoCredsList":                       schema_pkg_apis_application_v1alpha1_RepoCredsList(ref),
 		"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.Repository":                          schema_pkg_apis_application_v1alpha1_Repository(ref),

@@ -270,11 +270,13 @@ const (
 	RefreshTypeHard   RefreshType = "hard"
 )
 
-type RefTargeRevisionMapping struct {
+type RefTarget struct {
 	Repo           Repository `protobuf:"bytes,1,opt,name=repo"`
 	TargetRevision string     `protobuf:"bytes,2,opt,name=targetRevision"`
 	Chart          string     `protobuf:"bytes,3,opt,name=chart"`
 }
+
+type RefTargetRevisionMapping map[string]*RefTarget
 
 func (a *ApplicationSource) GetRefVariableName(namespace, appName string) string {
 	return fmt.Sprintf("$%s_%s_%s", namespace, appName, a.Ref)
