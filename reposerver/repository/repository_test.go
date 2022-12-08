@@ -1080,28 +1080,37 @@ func TestGenerateHelmWithFileParameter(t *testing.T) {
 func TestGenerateNullList(t *testing.T) {
 	service := newService(".")
 
-	res1, err := service.GenerateManifest(context.Background(), &apiclient.ManifestRequest{
-		Repo:              &argoappv1.Repository{},
-		ApplicationSource: &argoappv1.ApplicationSource{Path: "./testdata/null-list"},
+	t.Run("null list", func(t *testing.T) {
+		res1, err := service.GenerateManifest(context.Background(), &apiclient.ManifestRequest{
+			Repo:              &argoappv1.Repository{},
+			ApplicationSource: &argoappv1.ApplicationSource{Path: "./testdata/null-list"},
+			NoCache:           true,
+		})
+		assert.Nil(t, err)
+		assert.Equal(t, len(res1.Manifests), 1)
+		assert.Contains(t, res1.Manifests[0], "prometheus-operator-operator")
 	})
-	assert.Nil(t, err)
-	assert.Equal(t, len(res1.Manifests), 1)
-	assert.Contains(t, res1.Manifests[0], "prometheus-operator-operator")
 
-	res1, err = service.GenerateManifest(context.Background(), &apiclient.ManifestRequest{
-		Repo:              &argoappv1.Repository{},
-		ApplicationSource: &argoappv1.ApplicationSource{Path: "./testdata/empty-list"},
+	t.Run("empty list", func(t *testing.T) {
+		res1, err := service.GenerateManifest(context.Background(), &apiclient.ManifestRequest{
+			Repo:              &argoappv1.Repository{},
+			ApplicationSource: &argoappv1.ApplicationSource{Path: "./testdata/empty-list"},
+			NoCache:           true,
+		})
+		assert.Nil(t, err)
+		assert.Equal(t, len(res1.Manifests), 1)
+		assert.Contains(t, res1.Manifests[0], "prometheus-operator-operator")
 	})
-	assert.Nil(t, err)
-	assert.Equal(t, len(res1.Manifests), 1)
-	assert.Contains(t, res1.Manifests[0], "prometheus-operator-operator")
 
-	res1, err = service.GenerateManifest(context.Background(), &apiclient.ManifestRequest{
-		Repo:              &argoappv1.Repository{},
-		ApplicationSource: &argoappv1.ApplicationSource{Path: "./testdata/weird-list"},
+	t.Run("weird list", func(t *testing.T) {
+		res1, err := service.GenerateManifest(context.Background(), &apiclient.ManifestRequest{
+			Repo:              &argoappv1.Repository{},
+			ApplicationSource: &argoappv1.ApplicationSource{Path: "./testdata/weird-list"},
+			NoCache:           true,
+		})
+		assert.Nil(t, err)
+		assert.Len(t, res1.Manifests, 2)
 	})
-	assert.Nil(t, err)
-	assert.Equal(t, 2, len(res1.Manifests))
 }
 
 func TestIdentifyAppSourceTypeByAppDirWithKustomizations(t *testing.T) {
