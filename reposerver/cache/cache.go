@@ -92,18 +92,20 @@ func appSourceKey(appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisi
 	return hash.FNVa(appSourceKeyJSON(appSrc, srcRefs))
 }
 
+type appSourceKeyStruct struct {
+	AppSrc  *appv1.ApplicationSource            `json:"appSrc"`
+	SrcRefs refTargetRevisionMappingForCacheKey `json:"srcRefs"`
+}
+
 func appSourceKeyJSON(appSrc *appv1.ApplicationSource, srcRefs appv1.RefTargetRevisionMapping) string {
 	appSrc = appSrc.DeepCopy()
 	if !appSrc.IsHelm() {
 		appSrc.RepoURL = ""        // superseded by commitSHA
 		appSrc.TargetRevision = "" // superseded by commitSHA
 	}
-	appSrcStr, _ := json.Marshal(struct {
-		appSrc  *appv1.ApplicationSource
-		srcRefs refTargetRevisionMappingForCacheKey
-	}{
-		appSrc:  appSrc,
-		srcRefs: getRefTargetRevisionMappingForCacheKey(srcRefs),
+	appSrcStr, _ := json.Marshal(appSourceKeyStruct{
+		AppSrc:  appSrc,
+		SrcRefs: getRefTargetRevisionMappingForCacheKey(srcRefs),
 	})
 	return string(appSrcStr)
 }
