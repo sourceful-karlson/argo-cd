@@ -613,8 +613,7 @@ func (s *Service) runManifestGenAsync(ctx context.Context, repoRoot, commitSHA, 
 							return
 						}
 						if refSourceMapping.Chart != "" {
-							log.Error("source has a 'chart' field defined, but Helm charts are not yet not supported for 'ref' sources")
-							ch.errCh <- err
+							ch.errCh <- fmt.Errorf("source has a 'chart' field defined, but Helm charts are not yet not supported for 'ref' sources")
 							return
 						}
 						normalizedRepoURL := git.NormalizeGitURL(refSourceMapping.Repo.Repo)
