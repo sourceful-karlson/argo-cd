@@ -35,3 +35,17 @@ func TestGetPath_SameURLsDifferentInstances(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEqual(t, res1, res2)
 }
+
+func TestGetPathIfExists(t *testing.T) {
+	paths := NewTempPaths(os.TempDir())
+	t.Run("does not exist", func(t *testing.T) {
+		path := paths.GetPathIfExists("https://localhost/test.txt")
+		assert.Empty(t, path)
+	})
+	t.Run("does exist", func(t *testing.T) {
+		_, err := paths.GetPath("https://localhost/test.txt")
+		require.NoError(t, err)
+		path := paths.GetPathIfExists("https://localhost/test.txt")
+		assert.NotEmpty(t, path)
+	})
+}
