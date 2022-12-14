@@ -325,6 +325,40 @@ func TestHelmChartReferencingExternalValues(t *testing.T) {
 	}, response)
 }
 
+func TestHelmChartReferencingExternalValues_OutOfBounds_Symlink(t *testing.T) {
+	service := newService(".")
+	err := os.Mkdir("testdata/oob-symlink", 0755)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err = os.RemoveAll("testdata/oob-symlink")
+		require.NoError(t, err)
+	})
+	// Create a symlink to a file outside of the repo
+	err = os.Symlink("../../../values.yaml", "./testdata/oob-symlink/oob-symlink.yaml")
+	// Create a regular file to reference from another source
+	err = os.WriteFile("./testdata/oob-symlink/values.yaml", []byte("foo: bar"), 0644)
+	require.NoError(t, err)
+	spec := argoappv1.ApplicationSpec{
+		Sources: []argoappv1.ApplicationSource{
+			{RepoURL: "https://helm.example.com", Chart: "my-chart", TargetRevision: ">= 1.0.0", Helm: &argoappv1.ApplicationSourceHelm{
+				// Reference `ref` but do not use the oob symlink. The mere existence of the link should be enough to
+				// cause an error.
+				ValueFiles: []string{"$ref/testdata/oob-symlink/values.yaml"},
+			}},
+			{Ref: "ref", RepoURL: "https://git.example.com/test/repo"},
+		},
+	}
+	repoDB := &dbmocks.ArgoDB{}
+	repoDB.On("GetRepository", context.Background(), "https://git.example.com/test/repo").Return(&argoappv1.Repository{
+		Repo: "https://git.example.com/test/repo",
+	}, nil)
+	refSources, err := argo.GetRefSources(context.Background(), spec, repoDB)
+	require.NoError(t, err)
+	request := &apiclient.ManifestRequest{Repo: &argoappv1.Repository{}, ApplicationSource: &spec.Sources[0], NoCache: true, RefSources: refSources, HasMultipleSources: true}
+	_, err = service.GenerateManifest(context.Background(), request)
+	assert.Error(t, err)
+}
+
 func TestGenerateManifestsUseExactRevision(t *testing.T) {
 	service, gitClient := newServiceWithMocks(".", false)
 

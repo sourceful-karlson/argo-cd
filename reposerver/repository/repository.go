@@ -652,6 +652,27 @@ func (s *Service) runManifestGenAsync(ctx context.Context, repoRoot, commitSHA, 
 								ch.errCh <- fmt.Errorf("failed to get git client for repo %s", q.Repo.Repo)
 								return
 							}
+
+							if !s.initConstants.AllowOutOfBoundsSymlinks {
+								err := argopath.CheckOutOfBoundsSymlinks(gitClient.Root())
+								if err != nil {
+									oobError := &argopath.OutOfBoundsSymlinkError{}
+									if errors.As(err, &oobError) {
+										log.WithFields(log.Fields{
+											common.SecurityField: common.SecurityHigh,
+											"repo":               refSourceMapping.Repo,
+											"revision":           refSourceMapping.TargetRevision,
+											"file":               oobError.File,
+										}).Warn("repository contains out-of-bounds symlink")
+										ch.errCh <- fmt.Errorf("repository contains out-of-bounds symlinks. file: %s", oobError.File)
+										return
+									} else {
+										ch.errCh <- err
+										return
+									}
+								}
+							}
+
 							if git.NormalizeGitURL(q.ApplicationSource.RepoURL) == normalizedRepoURL && commitSHA != referencedCommitSHA {
 								ch.errCh <- fmt.Errorf("cannot reference a different revision of the same repository (%s references %q which resolves to %q while the application references %q which resolves to %q)", refVar, refSourceMapping.TargetRevision, referencedCommitSHA, q.Revision, commitSHA)
 								return
