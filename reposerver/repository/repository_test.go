@@ -35,11 +35,13 @@ import (
 	fileutil "github.com/argoproj/argo-cd/v2/test/fixture/path"
 	"github.com/argoproj/argo-cd/v2/util/argo"
 	cacheutil "github.com/argoproj/argo-cd/v2/util/cache"
+	dbmocks "github.com/argoproj/argo-cd/v2/util/db/mocks"
 	"github.com/argoproj/argo-cd/v2/util/git"
 	gitmocks "github.com/argoproj/argo-cd/v2/util/git/mocks"
 	"github.com/argoproj/argo-cd/v2/util/helm"
 	helmmocks "github.com/argoproj/argo-cd/v2/util/helm/mocks"
 	"github.com/argoproj/argo-cd/v2/util/io"
+	iomocks "github.com/argoproj/argo-cd/v2/util/io/mocks"
 )
 
 const testSignature = `gpg: Signature made Wed Feb 26 23:22:34 2020 CET
@@ -47,14 +49,14 @@ gpg:                using RSA key 4AEE18F83AFDEB23
 gpg: Good signature from "GitHub (web-flow commit signing) <noreply@github.com>" [ultimate]
 `
 
-type clientFunc func(*gitmocks.Client, *helmmocks.Client)
+type clientFunc func(*gitmocks.Client, *helmmocks.Client, *iomocks.TempPaths)
 
 func newServiceWithMocks(root string, signed bool) (*Service, *gitmocks.Client) {
 	root, err := filepath.Abs(root)
 	if err != nil {
 		panic(err)
 	}
-	return newServiceWithOpt(func(gitClient *gitmocks.Client, helmClient *helmmocks.Client) {
+	return newServiceWithOpt(func(gitClient *gitmocks.Client, helmClient *helmmocks.Client, paths *iomocks.TempPaths) {
 		gitClient.On("Init").Return(nil)
 		gitClient.On("Fetch", mock.Anything).Return(nil)
 		gitClient.On("Checkout", mock.Anything, mock.Anything).Return(nil)
@@ -79,13 +81,17 @@ func newServiceWithMocks(root string, signed bool) (*Service, *gitmocks.Client) 
 		helmClient.On("CleanChartCache", chart, version).Return(nil)
 		helmClient.On("CleanChartCache", oobChart, version).Return(nil)
 		helmClient.On("DependencyBuild").Return(nil)
+
+		paths.On("GetPath", mock.Anything).Return(root, nil)
+		paths.On("GetPathIfExists", mock.Anything).Return(root, nil)
 	}, root)
 }
 
 func newServiceWithOpt(cf clientFunc, root string) (*Service, *gitmocks.Client) {
 	helmClient := &helmmocks.Client{}
 	gitClient := &gitmocks.Client{}
-	cf(gitClient, helmClient)
+	paths := &iomocks.TempPaths{}
+	cf(gitClient, helmClient, paths)
 	service := NewService(metrics.NewMetricsServer(), cache.NewCache(
 		cacheutil.NewCache(cacheutil.NewInMemoryCache(1*time.Minute)),
 		1*time.Minute,
@@ -101,6 +107,7 @@ func newServiceWithOpt(cf clientFunc, root string) (*Service, *gitmocks.Client) 
 	service.gitRepoInitializer = func(rootPath string) goio.Closer {
 		return io.NopCloser
 	}
+	service.gitRepoPaths = paths
 	return service, gitClient
 }
 
@@ -122,7 +129,7 @@ func newServiceWithCommitSHA(root, revision string) *Service {
 		revisionErr = errors.New("not a commit SHA")
 	}
 
-	service, gitClient := newServiceWithOpt(func(gitClient *gitmocks.Client, helmClient *helmmocks.Client) {
+	service, gitClient := newServiceWithOpt(func(gitClient *gitmocks.Client, helmClient *helmmocks.Client, paths *iomocks.TempPaths) {
 		gitClient.On("Init").Return(nil)
 		gitClient.On("Fetch", mock.Anything).Return(nil)
 		gitClient.On("Checkout", mock.Anything, mock.Anything).Return(nil)
@@ -274,6 +281,35 @@ func TestHelmManifestFromChartRepo(t *testing.T) {
 	service := newService(".")
 	source := &argoappv1.ApplicationSource{Chart: "my-chart", TargetRevision: ">= 1.0.0"}
 	request := &apiclient.ManifestRequest{Repo: &argoappv1.Repository{}, ApplicationSource: source, NoCache: true}
+	response, err := service.GenerateManifest(context.Background(), request)
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, &apiclient.ManifestResponse{
+		Manifests:  []string{"{\"apiVersion\":\"v1\",\"kind\":\"ConfigMap\",\"metadata\":{\"name\":\"my-map\"}}"},
+		Namespace:  "",
+		Server:     "",
+		Revision:   "1.1.0",
+		SourceType: "Helm",
+	}, response)
+}
+
+func TestHelmChartReferencingExternalValues(t *testing.T) {
+	service := newService(".")
+	spec := argoappv1.ApplicationSpec{
+		Sources: []argoappv1.ApplicationSource{
+			{RepoURL: "https://helm.example.com", Chart: "my-chart", TargetRevision: ">= 1.0.0", Helm: &argoappv1.ApplicationSourceHelm{
+				ValueFiles: []string{"$ref/testdata/my-chart/my-chart-values.yaml"},
+			}},
+			{Ref: "ref", RepoURL: "https://git.example.com/test/repo"},
+		},
+	}
+	repoDB := &dbmocks.ArgoDB{}
+	repoDB.On("GetRepository", context.Background(), "https://git.example.com/test/repo").Return(&argoappv1.Repository{
+		Repo: "https://git.example.com/test/repo",
+	}, nil)
+	refSources, err := argo.GetRefSources(context.Background(), spec, repoDB)
+	require.NoError(t, err)
+	request := &apiclient.ManifestRequest{Repo: &argoappv1.Repository{}, ApplicationSource: &spec.Sources[0], NoCache: true, RefSources: refSources, HasMultipleSources: true}
 	response, err := service.GenerateManifest(context.Background(), request)
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
@@ -2496,7 +2532,7 @@ func Test_findHelmValueFilesInPath(t *testing.T) {
 }
 
 func Test_populateHelmAppDetails(t *testing.T) {
-	var emptyTempPaths = io.NewTempPaths(t.TempDir())
+	var emptyTempPaths = io.NewRandomizedTempPaths(t.TempDir())
 	res := apiclient.RepoAppDetailsResponse{}
 	q := apiclient.RepoServerAppDetailsQuery{
 		Repo: &argoappv1.Repository{},
@@ -2513,7 +2549,7 @@ func Test_populateHelmAppDetails(t *testing.T) {
 }
 
 func Test_populateHelmAppDetails_values_symlinks(t *testing.T) {
-	var emptyTempPaths = io.NewTempPaths(t.TempDir())
+	var emptyTempPaths = io.NewRandomizedTempPaths(t.TempDir())
 	t.Run("inbound", func(t *testing.T) {
 		res := apiclient.RepoAppDetailsResponse{}
 		q := apiclient.RepoServerAppDetailsQuery{Repo: &argoappv1.Repository{}, Source: &argoappv1.ApplicationSource{}}
@@ -2550,7 +2586,7 @@ func TestOCIDependencies(t *testing.T) {
 
 func Test_getResolvedValueFiles(t *testing.T) {
 	tempDir := t.TempDir()
-	paths := io.NewTempPaths(tempDir)
+	paths := io.NewRandomizedTempPaths(tempDir)
 	paths.Add(git.NormalizeGitURL("https://github.com/org/repo1"), path.Join(tempDir, "repo1"))
 
 	testCases := []struct {

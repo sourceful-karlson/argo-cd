@@ -83,8 +83,8 @@ var ErrExceededMaxCombinedManifestFileSize = errors.New("exceeded max combined m
 type Service struct {
 	gitCredsStore             git.CredsStore
 	rootDir                   string
-	gitRepoPaths              *io.TempPaths
-	chartPaths                *io.TempPaths
+	gitRepoPaths              io.TempPaths
+	chartPaths                io.TempPaths
 	gitRepoInitializer        func(rootPath string) goio.Closer
 	repoLock                  *repositoryLock
 	cache                     *reposervercache.Cache
@@ -118,6 +118,8 @@ func NewService(metricsServer *metrics.MetricsServer, cache *reposervercache.Cac
 		parallelismLimitSemaphore = semaphore.NewWeighted(initConstants.ParallelismLimit)
 	}
 	repoLock := NewRepositoryLock()
+	gitRandomizedPaths := io.NewRandomizedTempPaths(rootDir)
+	helmRandomizedPaths := io.NewRandomizedTempPaths(rootDir)
 	return &Service{
 		parallelismLimitSemaphore: parallelismLimitSemaphore,
 		repoLock:                  repoLock,
@@ -131,8 +133,8 @@ func NewService(metricsServer *metrics.MetricsServer, cache *reposervercache.Cac
 		initConstants:      initConstants,
 		now:                time.Now,
 		gitCredsStore:      gitCredsStore,
-		gitRepoPaths:       io.NewTempPaths(rootDir),
-		chartPaths:         io.NewTempPaths(rootDir),
+		gitRepoPaths:       gitRandomizedPaths,
+		chartPaths:         helmRandomizedPaths,
 		gitRepoInitializer: directoryPermissionInitializer,
 		rootDir:            rootDir,
 	}
@@ -946,7 +948,7 @@ func populateRequestRepos(appPath string, q *apiclient.ManifestRequest) error {
 	return nil
 }
 
-func helmTemplate(appPath string, repoRoot string, env *v1alpha1.Env, q *apiclient.ManifestRequest, isLocal bool, gitRepoPaths *io.TempPaths) ([]*unstructured.Unstructured, error) {
+func helmTemplate(appPath string, repoRoot string, env *v1alpha1.Env, q *apiclient.ManifestRequest, isLocal bool, gitRepoPaths io.TempPaths) ([]*unstructured.Unstructured, error) {
 	concurrencyAllowed := isConcurrencyAllowed(appPath)
 	if !concurrencyAllowed {
 		manifestGenerateLock.Lock(appPath)
@@ -1084,7 +1086,7 @@ func getResolvedValueFiles(
 	allowedValueFilesSchemas []string,
 	rawValueFiles []string,
 	refSources map[string]*v1alpha1.RefTarget,
-	gitRepoPaths *io.TempPaths,
+	gitRepoPaths io.TempPaths,
 	ignoreMissingValueFiles bool,
 ) ([]pathutil.ResolvedFilePath, error) {
 	var resolvedValueFiles []pathutil.ResolvedFilePath
@@ -1128,7 +1130,7 @@ func getResolvedRefValueFile(
 	env *v1alpha1.Env,
 	allowedValueFilesSchemas []string,
 	refSourceRepo string,
-	gitRepoPaths *io.TempPaths,
+	gitRepoPaths io.TempPaths,
 ) (pathutil.ResolvedFilePath, error) {
 	pathStrings := strings.Split(rawValueFile, "/")
 	repoPath := gitRepoPaths.GetPathIfExists(git.NormalizeGitURL(refSourceRepo))
@@ -1197,7 +1199,7 @@ func WithCMPTarExcludedGlobs(excludedGlobs []string) GenerateManifestOpt {
 }
 
 // GenerateManifests generates manifests from a path. Overrides are applied as a side effect on the given ApplicationSource.
-func GenerateManifests(ctx context.Context, appPath, repoRoot, revision string, q *apiclient.ManifestRequest, isLocal bool, gitCredsStore git.CredsStore, maxCombinedManifestQuantity resource.Quantity, gitRepoPaths *io.TempPaths, opts ...GenerateManifestOpt) (*apiclient.ManifestResponse, error) {
+func GenerateManifests(ctx context.Context, appPath, repoRoot, revision string, q *apiclient.ManifestRequest, isLocal bool, gitCredsStore git.CredsStore, maxCombinedManifestQuantity resource.Quantity, gitRepoPaths io.TempPaths, opts ...GenerateManifestOpt) (*apiclient.ManifestResponse, error) {
 	opt := newGenerateManifestOpt(opts...)
 	var targetObjs []*unstructured.Unstructured
 	var dest *v1alpha1.ApplicationDestination
@@ -1923,7 +1925,7 @@ func (s *Service) createGetAppDetailsCacheHandler(res *apiclient.RepoAppDetailsR
 	}
 }
 
-func populateHelmAppDetails(res *apiclient.RepoAppDetailsResponse, appPath string, repoRoot string, q *apiclient.RepoServerAppDetailsQuery, gitRepoPaths *io.TempPaths) error {
+func populateHelmAppDetails(res *apiclient.RepoAppDetailsResponse, appPath string, repoRoot string, q *apiclient.RepoServerAppDetailsQuery, gitRepoPaths io.TempPaths) error {
 	var selectedValueFiles []string
 
 	if q.Source.Helm != nil {
