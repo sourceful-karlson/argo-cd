@@ -1,6 +1,6 @@
 # Multiple Sources for an Application
 
-!!! warning Beta Feature
+!!! warning "Beta Feature"
     Specifying multiple sources for an application is a beta feature. The UI and CLI still generally behave as if only
     the first source is specified.
     This feature is subject to change in backwards incompatible ways until it is marked stable.
