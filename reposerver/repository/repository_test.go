@@ -82,6 +82,7 @@ func newServiceWithMocks(root string, signed bool) (*Service, *gitmocks.Client) 
 		helmClient.On("CleanChartCache", oobChart, version).Return(nil)
 		helmClient.On("DependencyBuild").Return(nil)
 
+		paths.On("Add", mock.Anything, mock.Anything).Return(root, nil)
 		paths.On("GetPath", mock.Anything).Return(root, nil)
 		paths.On("GetPathIfExists", mock.Anything).Return(root, nil)
 	}, root)
@@ -136,6 +137,8 @@ func newServiceWithCommitSHA(root, revision string) *Service {
 		gitClient.On("LsRemote", revision).Return(revision, revisionErr)
 		gitClient.On("CommitSHA").Return("632039659e542ed7de0c170a4fcc1c571b288fc0", nil)
 		gitClient.On("Root").Return(root)
+		paths.On("GetPath", mock.Anything).Return(root, nil)
+		paths.On("GetPathIfExists", mock.Anything).Return(root, nil)
 	}, root)
 
 	service.newGitClient = func(rawRepoURL string, root string, creds git.Creds, insecure bool, enableLfs bool, proxy string, opts ...git.ClientOpts) (client git.Client, e error) {
@@ -2462,11 +2465,7 @@ func TestInit(t *testing.T) {
 
 	require.NoError(t, service.Init())
 
-	repo1Path, err := service.gitRepoPaths.GetPath(git.NormalizeGitURL("https://github.com/argo-cd/test-repo1"))
-	assert.NoError(t, err)
-	assert.Equal(t, repoPath, repo1Path)
-
-	_, err = os.ReadDir(dir)
+	_, err := os.ReadDir(dir)
 	require.Error(t, err)
 	require.NoError(t, initGitRepo(path.Join(dir, "repo2"), "https://github.com/argo-cd/test-repo2"))
 }
