@@ -2,7 +2,7 @@
 
 !!! warning "Beta Feature"
     Specifying multiple sources for an application is a beta feature. The UI and CLI still generally behave as if only
-    the first source is specified.
+    the first source is specified. Full UI/CLI support will be added in a future release.
     This feature is subject to change in backwards incompatible ways until it is marked stable.
 
 Argo CD has the ability to specify multiple sources for a single Application. Argo CD compiles all the sources
