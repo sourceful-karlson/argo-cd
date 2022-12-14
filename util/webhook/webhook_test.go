@@ -548,7 +548,3 @@ func Test_getWebUrlRegex(t *testing.T) {
 		})
 	}
 }
-
-func Test_HandleEvent(t *testing.T) {
-
-}
