@@ -147,7 +147,7 @@ class Plugin(BaseHTTPRequestHandler):
             self.forbidden()
             
         if self.path == '/api/v1/getparams.execute':
-            args = self.args()
+            args = self.args()['parameters']
             self.reply({
                 "parameters": [
                     {
