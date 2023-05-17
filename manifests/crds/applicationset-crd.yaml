@@ -4124,10 +4124,13 @@ spec:
                                   appendParamsToValues:
                                     type: boolean
                                   configMapRef:
-                                    type: string
-                                  name:
-                                    type: string
-                                  params:
+                                    properties:
+                                      name:
+                                        type: string
+                                    required:
+                                    - name
+                                    type: object
+                                  parameters:
                                     additionalProperties:
                                       type: string
                                     type: object
@@ -8439,10 +8442,13 @@ spec:
                                   appendParamsToValues:
                                     type: boolean
                                   configMapRef:
-                                    type: string
-                                  name:
-                                    type: string
-                                  params:
+                                    properties:
+                                      name:
+                                        type: string
+                                    required:
+                                    - name
+                                    type: object
+                                  parameters:
                                     additionalProperties:
                                       type: string
                                     type: object
@@ -10711,10 +10717,13 @@ spec:
                         appendParamsToValues:
                           type: boolean
                         configMapRef:
-                          type: string
-                        name:
-                          type: string
-                        params:
+                          properties:
+                            name:
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        parameters:
                           additionalProperties:
                             type: string
                           type: object

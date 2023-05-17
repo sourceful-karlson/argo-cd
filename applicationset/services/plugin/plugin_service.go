@@ -8,12 +8,23 @@ import (
 	internalhttp "github.com/argoproj/argo-cd/v2/applicationset/services/internal/http"
 )
 
-type PluginService struct {
-	client *internalhttp.Client
-	name   string
+type Parameters map[string]string
+
+// ServiceRequest is the request object sent to the plugin service.
+type ServiceRequest struct {
+	// ApplicationSetName is the appSetName of the ApplicationSet for which we're requesting parameters. Useful for logging in
+	// the plugin service.
+	ApplicationSetName string `json:"applicationSetName"`
+	// Parameters is the map of parameters set in the ApplicationSet spec for this generator.
+	Parameters Parameters `json:"parameters"`
 }
 
-func NewPluginService(ctx context.Context, name string, baseURL string, token string, requestTimeout int) (*PluginService, error) {
+type Service struct {
+	client     *internalhttp.Client
+	appSetName string
+}
+
+func NewPluginService(ctx context.Context, appSetName string, baseURL string, token string, requestTimeout int) (*Service, error) {
 	var clientOptionFns []internalhttp.ClientOptionFunc
 
 	clientOptionFns = append(clientOptionFns, internalhttp.WithToken(token))
@@ -27,15 +38,14 @@ func NewPluginService(ctx context.Context, name string, baseURL string, token st
 		return nil, fmt.Errorf("error creating plugin client: %v", err)
 	}
 
-	return &PluginService{
-		client: client,
-		name:   name,
+	return &Service{
+		client:     client,
+		appSetName: appSetName,
 	}, nil
 }
 
-func (p *PluginService) List(ctx context.Context, params map[string]string) ([]map[string]interface{}, *http.Response, error) {
-
-	req, err := p.client.NewRequest("POST", "api/v1/getparams.execute", params, nil)
+func (p *Service) List(ctx context.Context, parameters map[string]string) ([]map[string]interface{}, *http.Response, error) {
+	req, err := p.client.NewRequest(http.MethodPost, "api/v1/getparams.execute", ServiceRequest{ApplicationSetName: p.appSetName, Parameters: parameters}, nil)
 
 	if err != nil {
 		return nil, nil, fmt.Errorf("NewRequest returned unexpected error: %v", err)
@@ -46,7 +56,7 @@ func (p *PluginService) List(ctx context.Context, params map[string]string) ([]m
 	resp, err := p.client.Do(ctx, req, &data)
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("error get api '%s': %v", p.name, err)
+		return nil, nil, fmt.Errorf("error get api '%s': %v", p.appSetName, err)
 	}
 
 	return data, resp, err

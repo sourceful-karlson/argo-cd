@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	plugin "github.com/argoproj/argo-cd/v2/applicationset/services/plugin"
+	"github.com/argoproj/argo-cd/v2/applicationset/services/plugin"
 	argoprojiov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
@@ -272,7 +272,7 @@ func TestPluginGenerateParams(t *testing.T) {
 			gotemplate:    false,
 			content:       []byte(`wrong body ...`),
 			expected:      []map[string]interface{}{},
-			expectedError: fmt.Errorf("error listing params : error get api 'wrong return': invalid character 'w' looking for beginning of value: wrong body ..."),
+			expectedError: fmt.Errorf("error listing params: error get api 'set': invalid character 'w' looking for beginning of value: wrong body ..."),
 		},
 		{
 			name: "external secret",
@@ -491,9 +491,8 @@ func TestPluginGenerateParams(t *testing.T) {
 
 			generatorConfig := argoprojiov1alpha1.ApplicationSetGenerator{
 				Plugin: &argoprojiov1alpha1.PluginGenerator{
-					Name:                 testCase.name,
-					ConfigMapRef:         testCase.configmap.Name,
-					Params:               testCase.params,
+					ConfigMapRef:         argoprojiov1alpha1.PluginConfigMapRef{Name: testCase.configmap.Name},
+					Parameters:           testCase.params,
 					AppendParamsToValues: testCase.appendParamsToValues,
 				},
 			}
@@ -509,7 +508,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				}
 
 				w.Header().Set("Content-Type", "application/json")
-				_, err := w.Write([]byte(testCase.content))
+				_, err := w.Write(testCase.content)
 				if err != nil {
 					assert.NoError(t, fmt.Errorf("Error Write %v", err))
 				}

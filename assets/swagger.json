@@ -7302,6 +7302,15 @@
         }
       }
     },
+    "v1alpha1PluginConfigMapRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name of the ConfigMap"
+        }
+      }
+    },
     "v1alpha1PluginGenerator": {
       "description": "PluginGenerator defines connection info specific to Plugin.",
       "type": "object",
@@ -7310,12 +7319,9 @@
           "type": "boolean"
         },
         "configMapRef": {
-          "type": "string"
+          "$ref": "#/definitions/v1alpha1PluginConfigMapRef"
         },
-        "name": {
-          "type": "string"
-        },
-        "params": {
+        "parameters": {
           "type": "object",
           "additionalProperties": {
             "type": "string"

@@ -23,7 +23,7 @@ func ReplaceStringSecret(val string, secretValues map[string]string) string {
 	return strings.TrimSpace(secretVal)
 }
 
-// Retrieve secret name if different from common ArgoCDSecretName.
+// Retrieve secret appSetName if different from common ArgoCDSecretName.
 func ParseSecretKey(key string) (secretName string, tokenKey string) {
 	if strings.Contains(key, ":") {
 		parts := strings.Split(key, ":")
