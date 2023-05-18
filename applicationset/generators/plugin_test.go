@@ -8,8 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/argoproj/argo-cd/v2/applicationset/services/plugin"
-	argoprojiov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,6 +15,9 @@ import (
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/argoproj/argo-cd/v2/applicationset/services/plugin"
+	argoprojiov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 )
 
 func TestPluginGenerateParams(t *testing.T) {
@@ -57,7 +58,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": "val2",
 			},
 			gotemplate: false,
-			content: []byte(`[{
+			content: []byte(`{"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -66,7 +67,7 @@ func TestPluginGenerateParams(t *testing.T) {
 					}
 				},
 				"key3": 123
-			 }]`),
+			 }]}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -103,7 +104,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": "val2",
 			},
 			gotemplate: true,
-			content: []byte(`[{
+			content: []byte(`{"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -112,7 +113,7 @@ func TestPluginGenerateParams(t *testing.T) {
 					}
 				},
 				"key3": 123
-			 }]`),
+			 }]}`),
 			expected: []map[string]interface{}{
 				{
 					"key1": "val1",
@@ -154,7 +155,7 @@ func TestPluginGenerateParams(t *testing.T) {
 			},
 			gotemplate:           false,
 			appendParamsToValues: true,
-			content: []byte(`[{
+			content: []byte(`{"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -164,7 +165,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				},
 				"key3": 123,
 				"pkey2": "valplugin"
-			 }]`),
+			 }]}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -200,7 +201,7 @@ func TestPluginGenerateParams(t *testing.T) {
 			},
 			params:     map[string]string{},
 			gotemplate: false,
-			content: []byte(`[{
+			content: []byte(`{"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -209,7 +210,7 @@ func TestPluginGenerateParams(t *testing.T) {
 					}
 				},
 				"key3": 123
-			 }]`),
+			 }]}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -243,7 +244,7 @@ func TestPluginGenerateParams(t *testing.T) {
 			},
 			params:        map[string]string{},
 			gotemplate:    false,
-			content:       []byte(`[]`),
+			content:       []byte(`{"parameters": []}`),
 			expected:      []map[string]interface{}{},
 			expectedError: nil,
 		},
@@ -301,7 +302,7 @@ func TestPluginGenerateParams(t *testing.T) {
 			},
 			gotemplate:           false,
 			appendParamsToValues: true,
-			content: []byte(`[{
+			content: []byte(`{"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -311,7 +312,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				},
 				"key3": 123,
 				"pkey2": "valplugin"
-			 }]`),
+			 }]}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -342,7 +343,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": "val2",
 			},
 			gotemplate: false,
-			content: []byte(`[{
+			content: []byte(`{"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -351,7 +352,7 @@ func TestPluginGenerateParams(t *testing.T) {
 					}
 				},
 				"key3": 123
-			 }]`),
+			 }]}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -379,7 +380,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": "val2",
 			},
 			gotemplate: false,
-			content: []byte(`[{
+			content: []byte(`{"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -388,7 +389,7 @@ func TestPluginGenerateParams(t *testing.T) {
 					}
 				},
 				"key3": 123
-			 }]`),
+			 }]}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -424,7 +425,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": "val2",
 			},
 			gotemplate: false,
-			content: []byte(`[{
+			content: []byte(`{"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -433,7 +434,7 @@ func TestPluginGenerateParams(t *testing.T) {
 					}
 				},
 				"key3": 123
-			 }]`),
+			 }]}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -461,7 +462,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": "val2",
 			},
 			gotemplate: false,
-			content: []byte(`[{
+			content: []byte(`{"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -470,7 +471,7 @@ func TestPluginGenerateParams(t *testing.T) {
 					}
 				},
 				"key3": 123
-			 }]`),
+			 }]}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
