@@ -8,7 +8,7 @@ import (
 	internalhttp "github.com/argoproj/argo-cd/v2/applicationset/services/internal/http"
 )
 
-type Parameters map[string]string
+type InputParameters map[string]string
 
 // ServiceRequest is the request object sent to the plugin service.
 type ServiceRequest struct {
@@ -16,7 +16,15 @@ type ServiceRequest struct {
 	// the plugin service.
 	ApplicationSetName string `json:"applicationSetName"`
 	// Parameters is the map of parameters set in the ApplicationSet spec for this generator.
-	Parameters Parameters `json:"parameters"`
+	Parameters InputParameters `json:"parameters"`
+}
+
+type OutputParameters []map[string]interface{}
+
+// ServiceResponse is the response object returned by the plugin service.
+type ServiceResponse struct {
+	// Parameters is the map of parameters returned by the plugin.
+	Parameters OutputParameters `json:"parameters"`
 }
 
 type Service struct {
@@ -44,20 +52,20 @@ func NewPluginService(ctx context.Context, appSetName string, baseURL string, to
 	}, nil
 }
 
-func (p *Service) List(ctx context.Context, parameters map[string]string) ([]map[string]interface{}, *http.Response, error) {
+func (p *Service) List(ctx context.Context, parameters map[string]string) (*ServiceResponse, error) {
 	req, err := p.client.NewRequest(http.MethodPost, "api/v1/getparams.execute", ServiceRequest{ApplicationSetName: p.appSetName, Parameters: parameters}, nil)
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("NewRequest returned unexpected error: %v", err)
+		return nil, fmt.Errorf("NewRequest returned unexpected error: %v", err)
 	}
 
-	var data []map[string]interface{}
+	var data ServiceResponse
 
-	resp, err := p.client.Do(ctx, req, &data)
+	_, err = p.client.Do(ctx, req, &data)
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("error get api '%s': %v", p.appSetName, err)
+		return nil, fmt.Errorf("error get api '%s': %v", p.appSetName, err)
 	}
 
-	return data, resp, err
+	return &data, err
 }
