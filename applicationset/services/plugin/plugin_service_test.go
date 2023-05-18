@@ -48,5 +48,5 @@ func TestPlugin(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, expectedData, data)
+	assert.Equal(t, &expectedData, data)
 }
