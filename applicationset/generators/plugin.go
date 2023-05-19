@@ -13,6 +13,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/argoproj/argo-cd/v2/applicationset/utils"
 	argoprojiov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/v2/util/settings"
 
@@ -137,7 +138,7 @@ func (g *PluginGenerator) generateParams(appSetGenerator *argoprojiov1alpha1.App
 
 		params["parameters"] = pluginParams
 
-		err := appendTemplatedValues(appSetGenerator.Plugin.Values, params, appSet)
+		err := utils.AppendTemplatedValues(render, appSetGenerator.Plugin.Values, params, appSet)
 		if err != nil {
 			return nil, err
 		}
