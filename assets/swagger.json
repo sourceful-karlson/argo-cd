@@ -7315,9 +7315,6 @@
       "description": "PluginGenerator defines connection info specific to Plugin.",
       "type": "object",
       "properties": {
-        "appendParamsToValues": {
-          "type": "boolean"
-        },
         "configMapRef": {
           "$ref": "#/definitions/v1alpha1PluginConfigMapRef"
         },
@@ -7328,12 +7325,19 @@
           }
         },
         "requeueAfterSeconds": {
-          "description": "Standard parameters.",
+          "description": "RequeueAfterSeconds determines how long the ApplicationSet controller will wait before reconciling the ApplicationSet again.",
           "type": "string",
           "format": "int64"
         },
         "template": {
           "$ref": "#/definitions/v1alpha1ApplicationSetTemplate"
+        },
+        "values": {
+          "description": "Values contains key/value pairs which are passed directly as parameters to the template. These values will not be\nsent as parameters to the plugin.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },

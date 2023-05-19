@@ -24,10 +24,11 @@ metadata:
 spec:
   generators:
     - plugin:
-        # Specify the configMap where the plugin configuration is located
+        # Specify the configMap where the plugin configuration is located.
         configMapRef: 
           name: my-plugin
-        # You can pass parameters included in the RPC call
+        # You can pass arbitrary parameters to the plugin. These parameters will also be available on the generator's 
+        # output under the `parameters` key.
         parameters:
           key1: "value1"
           key2: "value2"
@@ -37,10 +38,22 @@ spec:
             key1: "value1"
             key2: "value2"
             key3: "value3"
+
+        # You can also attach arbitrary values to the generator's output under the `values` key. These values will be
+        # available in templates under the `values` key.
+        values:
+          value1: something
           
         # When using a Plugin generator, the ApplicationSet controller polls every `requeueAfterSeconds` interval (defaulting to every 30 minutes) to detect changes.
         requeueAfterSeconds: 30
-        # ...
+  template:
+    metadata:
+      name: myplugin
+      annotations:
+        example.from.parameters: "{{ parameters.map.key1 }}"
+        example.from.values: "{{ values.value1 }}"
+        # The plugin determines what else it produces.
+        example.from.plugin.output: "{{ something.from.the.plugin }}"
 ```
 
 * `configMapRef.name`: A `ConfigMap` name containing the Plugin configuration to use for RPC call.
@@ -197,6 +210,8 @@ Some things to note here:
 * You should check that the `Authorization` header contains the same bearer value as `/var/run/argo/token`. Return 403 if not
 * The input parameters are included in the request body and can be accessed using the args variable.
 * The output must always be a list of object maps.
+* `parameters` and `values` are reserved keys. If present in the plugin output, these keys will be overwritten by the
+  contents of the `parameters` and `values` keys in the ApplicationSet's plugin generator spec.
 
 ## With matrix and pull request example
 
@@ -221,6 +236,8 @@ spec:
                 name: cm-plugin
               parameters:
                 branch: "{{.branch}}" # provided by generator pull request
+              values:
+                branchLink: "https://git.example.com/org/repo/tree/{{.branch}}"
   template:
     metadata:
       name: "fb-matrix-{{.branch}}"
@@ -248,4 +265,7 @@ spec:
       destination:
         server: https://kubernetes.default.svc
         namespace: "{{.branch}}"
+      info:
+        - name: Link to the Application's branch
+          value: '{{values.branchLink}}'
 ```

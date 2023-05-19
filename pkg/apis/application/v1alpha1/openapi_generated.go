@@ -4305,15 +4305,9 @@ func schema_pkg_apis_application_v1alpha1_PluginGenerator(ref common.ReferenceCa
 							},
 						},
 					},
-					"appendParamsToValues": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
-						},
-					},
 					"requeueAfterSeconds": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Standard parameters.",
+							Description: "RequeueAfterSeconds determines how long the ApplicationSet controller will wait before reconciling the ApplicationSet again.",
 							Type:        []string{"integer"},
 							Format:      "int64",
 						},
@@ -4322,6 +4316,22 @@ func schema_pkg_apis_application_v1alpha1_PluginGenerator(ref common.ReferenceCa
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
 							Ref:     ref("github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.ApplicationSetTemplate"),
+						},
+					},
+					"values": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Values contains key/value pairs which are passed directly as parameters to the template. These values will not be sent as parameters to the plugin.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
 						},
 					},
 				},

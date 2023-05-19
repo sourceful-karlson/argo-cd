@@ -80,7 +80,7 @@ func (g *PluginGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 		return nil, fmt.Errorf("error listing params: %w", err)
 	}
 
-	res, err := g.generateParams(list.Parameters, appSetGenerator.Plugin.Parameters, appSetGenerator.Plugin.AppendParamsToValues, applicationSetInfo.Spec.GoTemplate)
+	res, err := g.generateParams(appSetGenerator, applicationSetInfo, list.Parameters, appSetGenerator.Plugin.Parameters, applicationSetInfo.Spec.GoTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (g *PluginGenerator) getPluginFromGenerator(ctx context.Context, appSetName
 	return pluginClient, nil
 }
 
-func (g *PluginGenerator) generateParams(objectsFound []map[string]interface{}, pluginParams map[string]apiextensionsv1.JSON, appendParamsToValues bool, useGoTemplate bool) ([]map[string]interface{}, error) {
+func (g *PluginGenerator) generateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet, objectsFound []map[string]interface{}, pluginParams map[string]apiextensionsv1.JSON, useGoTemplate bool) ([]map[string]interface{}, error) {
 	res := []map[string]interface{}{}
 
 	for _, objectFound := range objectsFound {
@@ -135,13 +135,11 @@ func (g *PluginGenerator) generateParams(objectsFound []map[string]interface{}, 
 			}
 		}
 
-		if appendParamsToValues {
-			for k, v := range pluginParams {
-				// value returned by the plugin has precedence
-				if _, present := params[k]; !present {
-					params[k] = v
-				}
-			}
+		params["parameters"] = pluginParams
+
+		err := appendTemplatedValues(appSetGenerator.Plugin.Values, params, appSet)
+		if err != nil {
+			return nil, err
 		}
 
 		res = append(res, params)
