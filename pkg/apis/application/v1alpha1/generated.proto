@@ -1203,7 +1203,7 @@ message PluginConfigMapRef {
 message PluginGenerator {
   optional PluginConfigMapRef configMapRef = 1;
 
-  map<string, string> parameters = 2;
+  map<string, k8s.io.apiextensions_apiserver.pkg.apis.apiextensions.v1.JSON> parameters = 2;
 
   optional bool appendParamsToValues = 3;
 

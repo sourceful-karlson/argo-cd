@@ -8479,7 +8479,7 @@ spec:
                                     type: object
                                   parameters:
                                     additionalProperties:
-                                      type: string
+                                      x-kubernetes-preserve-unknown-fields: true
                                     type: object
                                   requeueAfterSeconds:
                                     format: int64
@@ -12797,7 +12797,7 @@ spec:
                                     type: object
                                   parameters:
                                     additionalProperties:
-                                      type: string
+                                      x-kubernetes-preserve-unknown-fields: true
                                     type: object
                                   requeueAfterSeconds:
                                     format: int64
@@ -15072,7 +15072,7 @@ spec:
                           type: object
                         parameters:
                           additionalProperties:
-                            type: string
+                            x-kubernetes-preserve-unknown-fields: true
                           type: object
                         requeueAfterSeconds:
                           format: int64

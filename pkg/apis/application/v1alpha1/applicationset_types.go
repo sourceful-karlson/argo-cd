@@ -542,9 +542,9 @@ type PluginConfigMapRef struct {
 
 // PluginGenerator defines connection info specific to Plugin.
 type PluginGenerator struct {
-	ConfigMapRef         PluginConfigMapRef `json:"configMapRef" protobuf:"bytes,1,name=configMapRef"`
-	Parameters           map[string]string  `json:"parameters,omitempty" protobuf:"bytes,2,name=parameters"`
-	AppendParamsToValues bool               `json:"appendParamsToValues,omitempty" protobuf:"bool,3,opt,name=appendParamsToValues"`
+	ConfigMapRef         PluginConfigMapRef              `json:"configMapRef" protobuf:"bytes,1,name=configMapRef"`
+	Parameters           map[string]apiextensionsv1.JSON `json:"parameters,omitempty" protobuf:"bytes,2,name=parameters"`
+	AppendParamsToValues bool                            `json:"appendParamsToValues,omitempty" protobuf:"bool,3,opt,name=appendParamsToValues"`
 	// Standard parameters.
 	RequeueAfterSeconds *int64                 `json:"requeueAfterSeconds,omitempty" protobuf:"varint,4,opt,name=requeueAfterSeconds"`
 	Template            ApplicationSetTemplate `json:"template,omitempty" protobuf:"bytes,5,name=template"`

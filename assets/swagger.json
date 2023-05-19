@@ -7324,7 +7324,7 @@
         "parameters": {
           "type": "object",
           "additionalProperties": {
-            "type": "string"
+            "$ref": "#/definitions/v1JSON"
           }
         },
         "requeueAfterSeconds": {

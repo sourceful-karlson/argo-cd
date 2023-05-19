@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+
 	internalhttp "github.com/argoproj/argo-cd/v2/applicationset/services/internal/http"
 )
-
-type InputParameters map[string]string
 
 // ServiceRequest is the request object sent to the plugin service.
 type ServiceRequest struct {
@@ -16,15 +16,13 @@ type ServiceRequest struct {
 	// the plugin service.
 	ApplicationSetName string `json:"applicationSetName"`
 	// Parameters is the map of parameters set in the ApplicationSet spec for this generator.
-	Parameters InputParameters `json:"parameters"`
+	Parameters map[string]apiextensionsv1.JSON `json:"parameters"`
 }
-
-type OutputParameters []map[string]interface{}
 
 // ServiceResponse is the response object returned by the plugin service.
 type ServiceResponse struct {
 	// Parameters is the map of parameters returned by the plugin.
-	Parameters OutputParameters `json:"parameters"`
+	Parameters []map[string]interface{} `json:"parameters"`
 }
 
 type Service struct {
@@ -52,7 +50,7 @@ func NewPluginService(ctx context.Context, appSetName string, baseURL string, to
 	}, nil
 }
 
-func (p *Service) List(ctx context.Context, parameters map[string]string) (*ServiceResponse, error) {
+func (p *Service) List(ctx context.Context, parameters map[string]apiextensionsv1.JSON) (*ServiceResponse, error) {
 	req, err := p.client.NewRequest(http.MethodPost, "api/v1/getparams.execute", ServiceRequest{ApplicationSetName: p.appSetName, Parameters: parameters}, nil)
 
 	if err != nil {

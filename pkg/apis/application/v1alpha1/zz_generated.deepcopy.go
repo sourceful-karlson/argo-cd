@@ -2522,9 +2522,9 @@ func (in *PluginGenerator) DeepCopyInto(out *PluginGenerator) {
 	out.ConfigMapRef = in.ConfigMapRef
 	if in.Parameters != nil {
 		in, out := &in.Parameters, &out.Parameters
-		*out = make(map[string]string, len(*in))
+		*out = make(map[string]apiextensionsv1.JSON, len(*in))
 		for key, val := range *in {
-			(*out)[key] = val
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 	if in.RequeueAfterSeconds != nil {

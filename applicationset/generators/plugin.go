@@ -9,6 +9,7 @@ import (
 
 	"github.com/jeremywohl/flatten"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -112,7 +113,7 @@ func (g *PluginGenerator) getPluginFromGenerator(ctx context.Context, appSetName
 	return pluginClient, nil
 }
 
-func (g *PluginGenerator) generateParams(objectsFound []map[string]interface{}, pluginParams map[string]string, appendParamsToValues bool, useGoTemplate bool) ([]map[string]interface{}, error) {
+func (g *PluginGenerator) generateParams(objectsFound []map[string]interface{}, pluginParams map[string]apiextensionsv1.JSON, appendParamsToValues bool, useGoTemplate bool) ([]map[string]interface{}, error) {
 	res := []map[string]interface{}{}
 
 	for _, objectFound := range objectsFound {

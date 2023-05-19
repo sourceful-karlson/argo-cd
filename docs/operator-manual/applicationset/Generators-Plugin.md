@@ -50,7 +50,7 @@ metadata:
   namespace: argocd
 data:
   token: "$plugin.myplugin.token" # Alternatively $<some_K8S_secret>:plugin.myplugin.token
-  baseUrl: "http://myplugin.plugin-ns.svc.cluster.local"
+  baseUrl: "http://myplugin.plugin-ns.svc.cluster.local."
 ```
 
 * `token`: Pre-shared token used to authenticate HTTP request (points to the right key you created in the `argocd-secret` Secret)
