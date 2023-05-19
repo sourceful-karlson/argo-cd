@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/v2/util/settings"
 
 	"github.com/argoproj/argo-cd/v2/applicationset/services/plugin"
 )
@@ -176,7 +177,7 @@ func (g *PluginGenerator) getToken(ctx context.Context, tokenRef string) (string
 		secretValues[k] = string(v)
 	}
 
-	token := plugin.ReplaceStringSecret(tokenKey, secretValues)
+	token := settings.ReplaceStringSecret(tokenKey, secretValues)
 
 	return token, err
 }
