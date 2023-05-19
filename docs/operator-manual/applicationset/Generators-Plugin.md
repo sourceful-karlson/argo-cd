@@ -27,8 +27,8 @@ spec:
         # Specify the configMap where the plugin configuration is located.
         configMapRef: 
           name: my-plugin
-        # You can pass arbitrary parameters to the plugin. These parameters will also be available on the generator's 
-        # output under the `parameters` key.
+        # You can pass arbitrary parameters to the plugin. `parameters` is a map, but values may be any type. 
+        # These parameters will also be available on the generator's output under the `parameters` key.
         parameters:
           key1: "value1"
           key2: "value2"
