@@ -9,6 +9,9 @@ Plugins allow you to provide your own generator.
   release.
 * You can combine it with Matrix or Merge.
 
+To start working on your own plugin, you can generate a new repository based on the example 
+[applicationset-hello-plugin](https://github.com/argoproj-labs/applicationset-hello-plugin).
+
 ## Simple example
 
 Using a generator plugin without combining it with Matrix or Merge.
@@ -27,7 +30,14 @@ spec:
         # You can pass parameters included in the RPC call
         parameters:
           key1: "value1"
-          key1: "value1"
+          key2: "value2"
+          list: ["list", "of", "values"]
+          boolean: true
+          map:
+            key1: "value1"
+            key2: "value2"
+            key3: "value3"
+          
         # When using a Plugin generator, the ApplicationSet controller polls every `requeueAfterSeconds` interval (defaulting to every 30 minutes) to detect changes.
         requeueAfterSeconds: 30
         # ...
