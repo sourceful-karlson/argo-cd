@@ -7318,7 +7318,8 @@
         "configMapRef": {
           "$ref": "#/definitions/v1alpha1PluginConfigMapRef"
         },
-        "parameters": {
+        "inputParameters": {
+          "description": "InputParameters contains the information to pass to the plugin. It is a map. The keys must be strings, and the\nvalues can be any type.",
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/v1JSON"

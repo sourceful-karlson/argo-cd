@@ -4291,9 +4291,10 @@ func schema_pkg_apis_application_v1alpha1_PluginGenerator(ref common.ReferenceCa
 							Ref:     ref("github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1.PluginConfigMapRef"),
 						},
 					},
-					"parameters": {
+					"inputParameters": {
 						SchemaProps: spec.SchemaProps{
-							Type: []string{"object"},
+							Description: "InputParameters contains the information to pass to the plugin. It is a map. The keys must be strings, and the values can be any type.",
+							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
 								Schema: &spec.Schema{

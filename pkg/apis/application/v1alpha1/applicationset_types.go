@@ -542,8 +542,10 @@ type PluginConfigMapRef struct {
 
 // PluginGenerator defines connection info specific to Plugin.
 type PluginGenerator struct {
-	ConfigMapRef PluginConfigMapRef              `json:"configMapRef" protobuf:"bytes,1,name=configMapRef"`
-	Parameters   map[string]apiextensionsv1.JSON `json:"parameters,omitempty" protobuf:"bytes,2,name=parameters"`
+	ConfigMapRef PluginConfigMapRef `json:"configMapRef" protobuf:"bytes,1,name=configMapRef"`
+	// InputParameters contains the information to pass to the plugin. It is a map. The keys must be strings, and the
+	// values can be any type.
+	InputParameters map[string]apiextensionsv1.JSON `json:"inputParameters,omitempty" protobuf:"bytes,2,name=inputParameters"`
 	// RequeueAfterSeconds determines how long the ApplicationSet controller will wait before reconciling the ApplicationSet again.
 	RequeueAfterSeconds *int64                 `json:"requeueAfterSeconds,omitempty" protobuf:"varint,3,opt,name=requeueAfterSeconds"`
 	Template            ApplicationSetTemplate `json:"template,omitempty" protobuf:"bytes,4,name=template"`

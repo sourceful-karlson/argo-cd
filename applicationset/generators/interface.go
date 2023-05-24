@@ -9,8 +9,8 @@ import (
 
 // Generator defines the interface implemented by all ApplicationSet generators.
 type Generator interface {
-	// GenerateParams interprets the ApplicationSet and generates all relevant parameters for the application template.
-	// The expected / desired list of parameters is returned, it then will be render and reconciled
+	// GenerateParams interprets the ApplicationSet and generates all relevant arguments for the application template.
+	// The expected / desired list of arguments is returned, it then will be render and reconciled
 	// against the current state of the Applications in the cluster.
 	GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetInfo *argoprojiov1alpha1.ApplicationSet) ([]map[string]interface{}, error)
 

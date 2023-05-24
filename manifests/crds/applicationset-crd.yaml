@@ -4128,7 +4128,7 @@ spec:
                                     required:
                                     - name
                                     type: object
-                                  parameters:
+                                  inputParameters:
                                     additionalProperties:
                                       x-kubernetes-preserve-unknown-fields: true
                                     type: object
@@ -8448,7 +8448,7 @@ spec:
                                     required:
                                     - name
                                     type: object
-                                  parameters:
+                                  inputParameters:
                                     additionalProperties:
                                       x-kubernetes-preserve-unknown-fields: true
                                     type: object
@@ -10725,7 +10725,7 @@ spec:
                           required:
                           - name
                           type: object
-                        parameters:
+                        inputParameters:
                           additionalProperties:
                             x-kubernetes-preserve-unknown-fields: true
                           type: object

@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/argoproj/argo-cd/v2/applicationset/services/mocks"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,6 +12,8 @@ import (
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/argoproj/argo-cd/v2/applicationset/services/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -848,7 +849,7 @@ func TestMatrixGenerateListElementsYaml(t *testing.T) {
 	}
 
 	listGenerator := &argoprojiov1alpha1.ListGenerator{
-		Elements: []apiextensionsv1.JSON{},
+		Elements:     []apiextensionsv1.JSON{},
 		ElementsYaml: "{{ .foo.bar | toJson }}",
 	}
 
@@ -870,60 +871,59 @@ func TestMatrixGenerateListElementsYaml(t *testing.T) {
 			},
 			expected: []map[string]interface{}{
 				{
-					"chart":         "a",
-					"version":         "1",
+					"chart":   "a",
+					"version": "1",
 					"foo": map[string]interface{}{
 						"bar": []interface{}{
 							map[string]interface{}{
-								"chart": "a",
+								"chart":   "a",
 								"version": "1",
 							},
 							map[string]interface{}{
-								"chart": "b",
+								"chart":   "b",
 								"version": "2",
 							},
 						},
 					},
 					"path": map[string]interface{}{
-						"basename": "dir",
+						"basename":           "dir",
 						"basenameNormalized": "dir",
-						"filename": "file_name.yaml",
+						"filename":           "file_name.yaml",
 						"filenameNormalized": "file-name.yaml",
-						"path": "path/dir",
-						"segments": []string {
+						"path":               "path/dir",
+						"segments": []string{
 							"path",
 							"dir",
 						},
 					},
 				},
 				{
-					"chart":         "b",
-					"version":         "2",
+					"chart":   "b",
+					"version": "2",
 					"foo": map[string]interface{}{
 						"bar": []interface{}{
 							map[string]interface{}{
-								"chart": "a",
+								"chart":   "a",
 								"version": "1",
 							},
 							map[string]interface{}{
-								"chart": "b",
+								"chart":   "b",
 								"version": "2",
 							},
 						},
 					},
 					"path": map[string]interface{}{
-						"basename": "dir",
+						"basename":           "dir",
 						"basenameNormalized": "dir",
-						"filename": "file_name.yaml",
+						"filename":           "file_name.yaml",
 						"filenameNormalized": "file-name.yaml",
-						"path": "path/dir",
-						"segments": []string {
+						"path":               "path/dir",
+						"segments": []string{
 							"path",
 							"dir",
 						},
 					},
 				},
-
 			},
 		},
 	}
@@ -952,27 +952,26 @@ func TestMatrixGenerateListElementsYaml(t *testing.T) {
 					"foo": map[string]interface{}{
 						"bar": []interface{}{
 							map[string]interface{}{
-								"chart": "a",
+								"chart":   "a",
 								"version": "1",
 							},
 							map[string]interface{}{
-								"chart": "b",
+								"chart":   "b",
 								"version": "2",
 							},
 						},
 					},
 					"path": map[string]interface{}{
-						"basename": "dir",
+						"basename":           "dir",
 						"basenameNormalized": "dir",
-						"filename": "file_name.yaml",
+						"filename":           "file_name.yaml",
 						"filenameNormalized": "file-name.yaml",
-						"path": "path/dir",
-						"segments": []string {
+						"path":               "path/dir",
+						"segments": []string{
 							"path",
 							"dir",
 						},
 					},
-
 				}}, nil)
 				genMock.On("GetTemplate", &gitGeneratorSpec).
 					Return(&argoprojiov1alpha1.ApplicationSetTemplate{})
@@ -1030,7 +1029,7 @@ func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.Appl
 
 func TestGitGenerator_GenerateParams_list_x_git_matrix_generator(t *testing.T) {
 	// Given a matrix generator over a list generator and a git files generator, the nested git files generator should
-	// be treated as a files generator, and it should produce parameters.
+	// be treated as a files generator, and it should produce arguments.
 
 	// This tests for a specific bug where a nested git files generator was being treated as a directory generator. This
 	// happened because, when the matrix generator was being processed, the nested git files generator was being

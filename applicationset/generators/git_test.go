@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/argoproj/argo-cd/v2/applicationset/services/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/argoproj/argo-cd/v2/applicationset/services/mocks"
+
 	argoprojiov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 )
-
 
 func Test_generateParamsFromGitFile(t *testing.T) {
 	params, err := (*GitGenerator)(nil).generateParamsFromGitFile("path/dir/file_name.yaml", []byte(`
@@ -144,7 +144,7 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:            "It prefixes path parameters with PathParamPrefix",
+			name:            "It prefixes path arguments with PathParamPrefix",
 			directories:     []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
 			pathParamPrefix: "myRepo",
 			repoApps: []string{
@@ -328,7 +328,7 @@ func TestGitGenerateParamsFromDirectoriesGoTemplate(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:            "It prefixes path parameters with PathParamPrefix",
+			name:            "It prefixes path arguments with PathParamPrefix",
 			directories:     []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
 			pathParamPrefix: "myRepo",
 			repoApps: []string{
