@@ -1029,7 +1029,7 @@ func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.Appl
 
 func TestGitGenerator_GenerateParams_list_x_git_matrix_generator(t *testing.T) {
 	// Given a matrix generator over a list generator and a git files generator, the nested git files generator should
-	// be treated as a files generator, and it should produce arguments.
+	// be treated as a files generator, and it should produce parameters.
 
 	// This tests for a specific bug where a nested git files generator was being treated as a directory generator. This
 	// happened because, when the matrix generator was being processed, the nested git files generator was being

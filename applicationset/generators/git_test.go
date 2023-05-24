@@ -144,7 +144,7 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:            "It prefixes path arguments with PathParamPrefix",
+			name:            "It prefixes path parameters with PathParamPrefix",
 			directories:     []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
 			pathParamPrefix: "myRepo",
 			repoApps: []string{
@@ -328,7 +328,7 @@ func TestGitGenerateParamsFromDirectoriesGoTemplate(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:            "It prefixes path arguments with PathParamPrefix",
+			name:            "It prefixes path parameters with PathParamPrefix",
 			directories:     []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
 			pathParamPrefix: "myRepo",
 			repoApps: []string{

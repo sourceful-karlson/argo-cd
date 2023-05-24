@@ -136,7 +136,7 @@ func (g *PluginGenerator) generateParams(appSetGenerator *argoprojiov1alpha1.App
 			}
 		}
 
-		params["arguments"] = pluginArgs
+		params["inputParameters"] = pluginArgs
 
 		err := utils.AppendTemplatedValues(render, appSetGenerator.Plugin.Values, params, appSet)
 		if err != nil {

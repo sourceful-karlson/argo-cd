@@ -112,7 +112,7 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 	}
 
 	if len(t) == 0 {
-		return nil, fmt.Errorf("child generator generated no arguments")
+		return nil, fmt.Errorf("child generator generated no parameters")
 	}
 
 	if len(t) > 1 {

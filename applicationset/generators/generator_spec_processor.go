@@ -132,7 +132,7 @@ func mergeGeneratorTemplate(g Generator, requestedGenerator *argoprojiov1alpha1.
 }
 
 // InterpolateGenerator allows interpolating the matrix's 2nd child generator with values from the 1st child generator
-// "params" parameter is an array, where each index corresponds to a generator. Each index contains a map w/ that generator's arguments.
+// "params" parameter is an array, where each index corresponds to a generator. Each index contains a map w/ that generator's parameters.
 func InterpolateGenerator(requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, params map[string]interface{}, useGoTemplate bool) (argoprojiov1alpha1.ApplicationSetGenerator, error) {
 	render := utils.Render{}
 	interpolatedGenerator, err := render.RenderGeneratorParams(requestedGenerator, params, useGoTemplate)
