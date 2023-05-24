@@ -72,7 +72,7 @@ func (g *ClusterGenerator) GenerateParams(
 		return nil, EmptyAppSetGeneratorError
 	}
 
-	// Do not include the local cluster in the parameters arguments IF there is a non-empty selector
+	// Do not include the local cluster in the cluster parameters IF there is a non-empty selector
 	// - Since local clusters do not have secrets, they do not have labels to match against
 	ignoreLocalClusters := len(appSetGenerator.Clusters.Selector.MatchExpressions) > 0 || len(appSetGenerator.Clusters.Selector.MatchLabels) > 0
 
