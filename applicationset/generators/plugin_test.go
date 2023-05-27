@@ -2,6 +2,7 @@ package generators
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,25 +61,29 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": {Raw: []byte(`"val2"`)},
 			},
 			gotemplate: false,
-			content: []byte(`{"outputParameters": [{
-				"key1": "val1",
-				"key2": {
-					"key2_1": "val2_1",
-					"key2_2": {
-						"key2_2_1": "val2_2_1"
-					}
-				},
-				"key3": 123
-			 }]}`),
+			content: []byte(`{"output": {
+				"parameters": [{
+					"key1": "val1",
+					"key2": {
+						"key2_1": "val2_1",
+						"key2_2": {
+							"key2_2_1": "val2_2_1"
+						}
+					},
+					"key3": 123
+                }]
+			 }}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"inputParameters": map[string]apiextensionsv1.JSON{
-						"pkey1": {Raw: []byte(`"val1"`)},
-						"pkey2": {Raw: []byte(`"val2"`)},
+					"input": argoprojiov1alpha1.PluginInput{
+						Parameters: argoprojiov1alpha1.PluginParameters{
+							"pkey1": {Raw: []byte(`"val1"`)},
+							"pkey2": {Raw: []byte(`"val2"`)},
+						},
 					},
 				},
 			},
@@ -113,16 +119,18 @@ func TestPluginGenerateParams(t *testing.T) {
 				"valuekey2": "templated-{{key1}}",
 			},
 			gotemplate: false,
-			content: []byte(`{"outputParameters": [{
-				"key1": "val1",
-				"key2": {
-					"key2_1": "val2_1",
-					"key2_2": {
-						"key2_2_1": "val2_2_1"
-					}
-				},
-				"key3": 123
-			 }]}`),
+			content: []byte(`{"output": {
+				"parameters": [{
+					"key1": "val1",
+					"key2": {
+						"key2_1": "val2_1",
+						"key2_2": {
+							"key2_2_1": "val2_2_1"
+						}
+					},
+					"key3": 123
+                }]
+			 }}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -131,9 +139,11 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key3":                 "123",
 					"values.valuekey1":     "valuevalue1",
 					"values.valuekey2":     "templated-val1",
-					"inputParameters": map[string]apiextensionsv1.JSON{
-						"pkey1": {Raw: []byte(`"val1"`)},
-						"pkey2": {Raw: []byte(`"val2"`)},
+					"input": argoprojiov1alpha1.PluginInput{
+						Parameters: argoprojiov1alpha1.PluginParameters{
+							"pkey1": {Raw: []byte(`"val1"`)},
+							"pkey2": {Raw: []byte(`"val2"`)},
+						},
 					},
 				},
 			},
@@ -165,16 +175,18 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": {Raw: []byte(`"val2"`)},
 			},
 			gotemplate: true,
-			content: []byte(`{"outputParameters": [{
-				"key1": "val1",
-				"key2": {
-					"key2_1": "val2_1",
-					"key2_2": {
-						"key2_2_1": "val2_2_1"
-					}
-				},
-				"key3": 123
-			 }]}`),
+			content: []byte(`{"output": {
+				"parameters": [{
+					"key1": "val1",
+					"key2": {
+						"key2_1": "val2_1",
+						"key2_2": {
+							"key2_2_1": "val2_2_1"
+						}
+					},
+					"key3": 123
+                }]
+			 }}`),
 			expected: []map[string]interface{}{
 				{
 					"key1": "val1",
@@ -185,9 +197,11 @@ func TestPluginGenerateParams(t *testing.T) {
 						},
 					},
 					"key3": float64(123),
-					"inputParameters": map[string]apiextensionsv1.JSON{
-						"pkey1": {Raw: []byte(`"val1"`)},
-						"pkey2": {Raw: []byte(`"val2"`)},
+					"input": argoprojiov1alpha1.PluginInput{
+						Parameters: argoprojiov1alpha1.PluginParameters{
+							"pkey1": {Raw: []byte(`"val1"`)},
+							"pkey2": {Raw: []byte(`"val2"`)},
+						},
 					},
 				},
 			},
@@ -219,7 +233,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": {Raw: []byte(`"val2"`)},
 			},
 			gotemplate: false,
-			content: []byte(`{"outputParameters": [{
+			content: []byte(`{"output": {"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -229,7 +243,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				},
 				"key3": 123,
 				"pkey2": "valplugin"
-			 }]}`),
+			 }]}}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -237,9 +251,11 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
 					"pkey2":                "valplugin",
-					"inputParameters": map[string]apiextensionsv1.JSON{
-						"pkey1": {Raw: []byte(`"val1"`)},
-						"pkey2": {Raw: []byte(`"val2"`)},
+					"input": argoprojiov1alpha1.PluginInput{
+						Parameters: argoprojiov1alpha1.PluginParameters{
+							"pkey1": {Raw: []byte(`"val1"`)},
+							"pkey2": {Raw: []byte(`"val2"`)},
+						},
 					},
 				},
 			},
@@ -266,25 +282,27 @@ func TestPluginGenerateParams(t *testing.T) {
 					"plugin.token": []byte("my-secret"),
 				},
 			},
-			inputParameters: map[string]apiextensionsv1.JSON{},
+			inputParameters: argoprojiov1alpha1.PluginParameters{},
 			gotemplate:      false,
-			content: []byte(`{"outputParameters": [{
-				"key1": "val1",
-				"key2": {
-					"key2_1": "val2_1",
-					"key2_2": {
-						"key2_2_1": "val2_2_1"
-					}
-				},
-				"key3": 123
-			 }]}`),
+			content: []byte(`{"output": {
+				"parameters": [{
+					"key1": "val1",
+					"key2": {
+						"key2_1": "val2_1",
+						"key2_2": {
+							"key2_2_1": "val2_2_1"
+						}
+					},
+					"key3": 123
+                }]
+			 }}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"inputParameters":      map[string]apiextensionsv1.JSON{},
+					"input":                map[string]map[string]interface{}{"parameters": {}},
 				},
 			},
 			expectedError: nil,
@@ -312,7 +330,7 @@ func TestPluginGenerateParams(t *testing.T) {
 			},
 			inputParameters: map[string]apiextensionsv1.JSON{},
 			gotemplate:      false,
-			content:         []byte(`{"inputParameters": []}`),
+			content:         []byte(`{"input": {"parameters": []}}`),
 			expected:        []map[string]interface{}{},
 			expectedError:   nil,
 		},
@@ -369,7 +387,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": {Raw: []byte(`"val2"`)},
 			},
 			gotemplate: false,
-			content: []byte(`{"outputParameters": [{
+			content: []byte(`{"output": {"parameters": [{
 				"key1": "val1",
 				"key2": {
 					"key2_1": "val2_1",
@@ -379,7 +397,7 @@ func TestPluginGenerateParams(t *testing.T) {
 				},
 				"key3": 123,
 				"pkey2": "valplugin"
-			 }]}`),
+			 }]}}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
@@ -387,9 +405,11 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
 					"pkey2":                "valplugin",
-					"inputParameters": map[string]apiextensionsv1.JSON{
-						"pkey1": {Raw: []byte(`"val1"`)},
-						"pkey2": {Raw: []byte(`"val2"`)},
+					"input": argoprojiov1alpha1.PluginInput{
+						Parameters: argoprojiov1alpha1.PluginParameters{
+							"pkey1": {Raw: []byte(`"val1"`)},
+							"pkey2": {Raw: []byte(`"val2"`)},
+						},
 					},
 				},
 			},
@@ -413,25 +433,29 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": {Raw: []byte(`"val2"`)},
 			},
 			gotemplate: false,
-			content: []byte(`{"outputParameters": [{
-				"key1": "val1",
-				"key2": {
-					"key2_1": "val2_1",
-					"key2_2": {
-						"key2_2_1": "val2_2_1"
-					}
-				},
-				"key3": 123
-			 }]}`),
+			content: []byte(`{"output": {
+				"parameters": [{
+					"key1": "val1",
+					"key2": {
+						"key2_1": "val2_1",
+						"key2_2": {
+							"key2_2_1": "val2_2_1"
+						}
+					},
+					"key3": 123
+                }]
+			 }}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"inputParameters": map[string]apiextensionsv1.JSON{
-						"pkey1": {Raw: []byte(`"val1"`)},
-						"pkey2": {Raw: []byte(`"val2"`)},
+					"input": argoprojiov1alpha1.PluginInput{
+						Parameters: argoprojiov1alpha1.PluginParameters{
+							"pkey1": {Raw: []byte(`"val1"`)},
+							"pkey2": {Raw: []byte(`"val2"`)},
+						},
 					},
 				},
 			},
@@ -454,25 +478,29 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": {Raw: []byte(`"val2"`)},
 			},
 			gotemplate: false,
-			content: []byte(`{"outputParameters": [{
-				"key1": "val1",
-				"key2": {
-					"key2_1": "val2_1",
-					"key2_2": {
-						"key2_2_1": "val2_2_1"
-					}
-				},
-				"key3": 123
-			 }]}`),
+			content: []byte(`{"output": {
+				"parameters": [{
+					"key1": "val1",
+					"key2": {
+						"key2_1": "val2_1",
+						"key2_2": {
+							"key2_2_1": "val2_2_1"
+						}
+					},
+					"key3": 123
+                }]
+			 }}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"inputParameters": map[string]apiextensionsv1.JSON{
-						"pkey1": {Raw: []byte(`"val1"`)},
-						"pkey2": {Raw: []byte(`"val2"`)},
+					"input": argoprojiov1alpha1.PluginInput{
+						Parameters: argoprojiov1alpha1.PluginParameters{
+							"pkey1": {Raw: []byte(`"val1"`)},
+							"pkey2": {Raw: []byte(`"val2"`)},
+						},
 					},
 				},
 			},
@@ -503,25 +531,29 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": {Raw: []byte(`"val2"`)},
 			},
 			gotemplate: false,
-			content: []byte(`{"outputParameters": [{
-				"key1": "val1",
-				"key2": {
-					"key2_1": "val2_1",
-					"key2_2": {
-						"key2_2_1": "val2_2_1"
-					}
-				},
-				"key3": 123
-			 }]}`),
+			content: []byte(`{"output": {
+				"parameters": [{
+					"key1": "val1",
+					"key2": {
+						"key2_1": "val2_1",
+						"key2_2": {
+							"key2_2_1": "val2_2_1"
+						}
+					},
+					"key3": 123
+                }]
+			 }}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"inputParameters": map[string]apiextensionsv1.JSON{
-						"pkey1": {Raw: []byte(`"val1"`)},
-						"pkey2": {Raw: []byte(`"val2"`)},
+					"input": argoprojiov1alpha1.PluginInput{
+						Parameters: argoprojiov1alpha1.PluginParameters{
+							"pkey1": {Raw: []byte(`"val1"`)},
+							"pkey2": {Raw: []byte(`"val2"`)},
+						},
 					},
 				},
 			},
@@ -544,25 +576,29 @@ func TestPluginGenerateParams(t *testing.T) {
 				"pkey2": {Raw: []byte(`"val2"`)},
 			},
 			gotemplate: false,
-			content: []byte(`{"outputParameters": [{
-				"key1": "val1",
-				"key2": {
-					"key2_1": "val2_1",
-					"key2_2": {
-						"key2_2_1": "val2_2_1"
-					}
-				},
-				"key3": 123
-			 }]}`),
+			content: []byte(`{"output": {
+				"parameters": [{
+					"key1": "val1",
+					"key2": {
+						"key2_1": "val2_1",
+						"key2_2": {
+							"key2_2_1": "val2_2_1"
+						}
+					},
+					"key3": 123
+                }]
+			 }}`),
 			expected: []map[string]interface{}{
 				{
 					"key1":                 "val1",
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"inputParameters": map[string]apiextensionsv1.JSON{
-						"pkey1": {Raw: []byte(`"val1"`)},
-						"pkey2": {Raw: []byte(`"val2"`)},
+					"input": argoprojiov1alpha1.PluginInput{
+						Parameters: argoprojiov1alpha1.PluginParameters{
+							"pkey1": {Raw: []byte(`"val1"`)},
+							"pkey2": {Raw: []byte(`"val2"`)},
+						},
 					},
 				},
 			},
@@ -636,7 +672,11 @@ func TestPluginGenerateParams(t *testing.T) {
 				assert.EqualError(t, err, testCase.expectedError.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.ElementsMatch(t, testCase.expected, got)
+				expectedJson, err := json.Marshal(testCase.expected)
+				require.NoError(t, err)
+				gotJson, err := json.Marshal(got)
+				require.NoError(t, err)
+				assert.Equal(t, string(expectedJson), string(gotJson))
 			}
 		})
 	}
