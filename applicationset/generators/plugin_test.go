@@ -79,10 +79,12 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"input": argoprojiov1alpha1.PluginInput{
-						Parameters: argoprojiov1alpha1.PluginParameters{
-							"pkey1": {Raw: []byte(`"val1"`)},
-							"pkey2": {Raw: []byte(`"val2"`)},
+					"generator": map[string]interface{}{
+						"input": argoprojiov1alpha1.PluginInput{
+							Parameters: argoprojiov1alpha1.PluginParameters{
+								"pkey1": {Raw: []byte(`"val1"`)},
+								"pkey2": {Raw: []byte(`"val2"`)},
+							},
 						},
 					},
 				},
@@ -139,10 +141,12 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key3":                 "123",
 					"values.valuekey1":     "valuevalue1",
 					"values.valuekey2":     "templated-val1",
-					"input": argoprojiov1alpha1.PluginInput{
-						Parameters: argoprojiov1alpha1.PluginParameters{
-							"pkey1": {Raw: []byte(`"val1"`)},
-							"pkey2": {Raw: []byte(`"val2"`)},
+					"generator": map[string]interface{}{
+						"input": argoprojiov1alpha1.PluginInput{
+							Parameters: argoprojiov1alpha1.PluginParameters{
+								"pkey1": {Raw: []byte(`"val1"`)},
+								"pkey2": {Raw: []byte(`"val2"`)},
+							},
 						},
 					},
 				},
@@ -197,10 +201,12 @@ func TestPluginGenerateParams(t *testing.T) {
 						},
 					},
 					"key3": float64(123),
-					"input": argoprojiov1alpha1.PluginInput{
-						Parameters: argoprojiov1alpha1.PluginParameters{
-							"pkey1": {Raw: []byte(`"val1"`)},
-							"pkey2": {Raw: []byte(`"val2"`)},
+					"generator": map[string]interface{}{
+						"input": argoprojiov1alpha1.PluginInput{
+							Parameters: argoprojiov1alpha1.PluginParameters{
+								"pkey1": {Raw: []byte(`"val1"`)},
+								"pkey2": {Raw: []byte(`"val2"`)},
+							},
 						},
 					},
 				},
@@ -251,10 +257,12 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
 					"pkey2":                "valplugin",
-					"input": argoprojiov1alpha1.PluginInput{
-						Parameters: argoprojiov1alpha1.PluginParameters{
-							"pkey1": {Raw: []byte(`"val1"`)},
-							"pkey2": {Raw: []byte(`"val2"`)},
+					"generator": map[string]interface{}{
+						"input": argoprojiov1alpha1.PluginInput{
+							Parameters: argoprojiov1alpha1.PluginParameters{
+								"pkey1": {Raw: []byte(`"val1"`)},
+								"pkey2": {Raw: []byte(`"val2"`)},
+							},
 						},
 					},
 				},
@@ -302,7 +310,11 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"input":                map[string]map[string]interface{}{"parameters": {}},
+					"generator": map[string]interface{}{
+						"input": map[string]map[string]interface{}{
+							"parameters": {},
+						},
+					},
 				},
 			},
 			expectedError: nil,
@@ -405,10 +417,12 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
 					"pkey2":                "valplugin",
-					"input": argoprojiov1alpha1.PluginInput{
-						Parameters: argoprojiov1alpha1.PluginParameters{
-							"pkey1": {Raw: []byte(`"val1"`)},
-							"pkey2": {Raw: []byte(`"val2"`)},
+					"generator": map[string]interface{}{
+						"input": argoprojiov1alpha1.PluginInput{
+							Parameters: argoprojiov1alpha1.PluginParameters{
+								"pkey1": {Raw: []byte(`"val1"`)},
+								"pkey2": {Raw: []byte(`"val2"`)},
+							},
 						},
 					},
 				},
@@ -451,10 +465,12 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"input": argoprojiov1alpha1.PluginInput{
-						Parameters: argoprojiov1alpha1.PluginParameters{
-							"pkey1": {Raw: []byte(`"val1"`)},
-							"pkey2": {Raw: []byte(`"val2"`)},
+					"generator": map[string]interface{}{
+						"input": argoprojiov1alpha1.PluginInput{
+							Parameters: argoprojiov1alpha1.PluginParameters{
+								"pkey1": {Raw: []byte(`"val1"`)},
+								"pkey2": {Raw: []byte(`"val2"`)},
+							},
 						},
 					},
 				},
@@ -496,10 +512,12 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"input": argoprojiov1alpha1.PluginInput{
-						Parameters: argoprojiov1alpha1.PluginParameters{
-							"pkey1": {Raw: []byte(`"val1"`)},
-							"pkey2": {Raw: []byte(`"val2"`)},
+					"generator": map[string]interface{}{
+						"input": argoprojiov1alpha1.PluginInput{
+							Parameters: argoprojiov1alpha1.PluginParameters{
+								"pkey1": {Raw: []byte(`"val1"`)},
+								"pkey2": {Raw: []byte(`"val2"`)},
+							},
 						},
 					},
 				},
@@ -549,10 +567,12 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"input": argoprojiov1alpha1.PluginInput{
-						Parameters: argoprojiov1alpha1.PluginParameters{
-							"pkey1": {Raw: []byte(`"val1"`)},
-							"pkey2": {Raw: []byte(`"val2"`)},
+					"generator": map[string]interface{}{
+						"input": argoprojiov1alpha1.PluginInput{
+							Parameters: argoprojiov1alpha1.PluginParameters{
+								"pkey1": {Raw: []byte(`"val1"`)},
+								"pkey2": {Raw: []byte(`"val2"`)},
+							},
 						},
 					},
 				},
@@ -594,10 +614,12 @@ func TestPluginGenerateParams(t *testing.T) {
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"key3":                 "123",
-					"input": argoprojiov1alpha1.PluginInput{
-						Parameters: argoprojiov1alpha1.PluginParameters{
-							"pkey1": {Raw: []byte(`"val1"`)},
-							"pkey2": {Raw: []byte(`"val2"`)},
+					"generator": map[string]interface{}{
+						"input": argoprojiov1alpha1.PluginInput{
+							Parameters: argoprojiov1alpha1.PluginParameters{
+								"pkey1": {Raw: []byte(`"val1"`)},
+								"pkey2": {Raw: []byte(`"val2"`)},
+							},
 						},
 					},
 				},

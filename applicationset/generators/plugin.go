@@ -135,8 +135,10 @@ func (g *PluginGenerator) generateParams(appSetGenerator *argoprojiov1alpha1.App
 			}
 		}
 
-		params["input"] = map[string]argoprojiov1alpha1.PluginParameters{
-			"parameters": pluginParams,
+		params["generator"] = map[string]interface{}{
+			"input": map[string]argoprojiov1alpha1.PluginParameters{
+				"parameters": pluginParams,
+			},
 		}
 
 		err := utils.AppendTemplatedValues(render, appSetGenerator.Plugin.Values, params, appSet)

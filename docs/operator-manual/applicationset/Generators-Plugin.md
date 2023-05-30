@@ -28,7 +28,7 @@ spec:
         configMapRef: 
           name: my-plugin
         # You can pass arbitrary parameters to the plugin. `input.parameters` is a map, but values may be any type. 
-        # These parameters will also be available on the generator's output under the `input.parameters` key.
+        # These parameters will also be available on the generator's output under the `generator.input.parameters` key.
         input:
           parameters:
             key1: "value1"
@@ -51,7 +51,7 @@ spec:
     metadata:
       name: myplugin
       annotations:
-        example.from.input.parameters: "{{ input.parameters.map.key1 }}"
+        example.from.input.parameters: "{{ generator.input.parameters.map.key1 }}"
         example.from.values: "{{ values.value1 }}"
         # The plugin determines what else it produces.
         example.from.plugin.output: "{{ something.from.the.plugin }}"
@@ -215,7 +215,7 @@ Some things to note here:
 * You should check that the `Authorization` header contains the same bearer value as `/var/run/argo/token`. Return 403 if not
 * The input parameters are included in the request body and can be accessed using the `input.parameters` variable.
 * The output must always be a list of object maps nested under the `output.parameters` key in a map.
-* `input.parameters` and `values` are reserved keys. If present in the plugin output, these keys will be overwritten by the
+* `generator.input.parameters` and `values` are reserved keys. If present in the plugin output, these keys will be overwritten by the
   contents of the `input.parameters` and `values` keys in the ApplicationSet's plugin generator spec.
 
 ## With matrix and pull request example
