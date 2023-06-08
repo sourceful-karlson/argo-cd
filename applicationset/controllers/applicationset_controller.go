@@ -675,7 +675,7 @@ func (r *ApplicationSetReconciler) createInCluster(ctx context.Context, applicat
 func (r *ApplicationSetReconciler) getCurrentApplications(_ context.Context, applicationSet argov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
 	// TODO: Should this use the context param?
 	var current argov1alpha1.ApplicationList
-	err := r.Client.List(context.Background(), &current)
+	err := r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSet.Name})
 
 	if err != nil {
 		return nil, err
