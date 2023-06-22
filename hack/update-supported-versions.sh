@@ -20,4 +20,4 @@ done
 git checkout "release-$argocd_minor_version"
 
 
-printf "$out" >> docs/operator-manual/tested-kubernetes-versions.md
+printf "$out" > docs/operator-manual/tested-kubernetes-versions.md
