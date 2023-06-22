@@ -56,6 +56,10 @@ jobs:
           make manifests-local VERSION=${{ inputs.TARGET_VERSION }}
           git diff
 
+      - name: Generate version compatibility table
+        run: |
+          bash hack/update-supported-versions.sh
+
       - name: Create pull request
         uses: peter-evans/create-pull-request@38e0b6e68b4c852a5500a94740f0e535e0d7ba54  # v4.2.4
         with:
