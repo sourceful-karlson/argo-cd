@@ -18,8 +18,9 @@ for n in 0 1 2; do
     >> docs/operator-manual/tested-kubernetes-versions.md
   git stash
 done
-git stash pop
 
 git checkout "release-$argocd_minor_version"
+
+git stash pop
 
 echo >> docs/operator-manual/tested-kubernetes-versions.md
