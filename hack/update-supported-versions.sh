@@ -16,6 +16,7 @@ for n in 0 1 2; do
     jq --arg minor_version "$minor_version" --raw-input --slurp --raw-output \
     'split("\n")[:-1] | map(sub("\\.[0-9]+$"; "")) | join(", ") | "| \($minor_version) | \(.) |"' \
     >> docs/operator-manual/tested-kubernetes-versions.md
+  git add docs/operator-manual/tested-kubernetes-versions.md
   git stash
 done
 
