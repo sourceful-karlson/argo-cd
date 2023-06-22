@@ -60,6 +60,7 @@ jobs:
         run: |
           git stash
           bash hack/update-supported-versions.sh
+          git add -u .
           git stash pop
 
       - name: Create pull request
