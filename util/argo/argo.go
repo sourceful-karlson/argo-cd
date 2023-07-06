@@ -869,8 +869,14 @@ func NormalizeSource(source *argoappv1.ApplicationSource) *argoappv1.Application
 	if source.Kustomize != nil && source.Kustomize.IsZero() {
 		source.Kustomize = nil
 	}
-	if source.Helm != nil && source.Helm.IsZero() {
-		source.Helm = nil
+	if source.Helm != nil {
+		if source.Helm.IsZero() {
+			source.Helm = nil
+		} else {
+			if source.Helm.ValuesObject != nil {
+				source.Helm.Values = ""
+			}
+		}
 	}
 	if source.Directory != nil && source.Directory.IsZero() {
 		if source.Directory.Exclude != "" && source.Directory.Include != "" {

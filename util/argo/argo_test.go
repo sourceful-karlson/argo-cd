@@ -17,6 +17,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
@@ -1562,6 +1563,84 @@ func TestAugmentSyncMsg(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expectedMessage, msg)
 			}
+		})
+	}
+}
+
+func Test_NormalizeSource(t *testing.T) {
+	testCases := []struct {
+		name     string
+		source   *argoappv1.ApplicationSource
+		expected *argoappv1.ApplicationSource
+	}{
+		{
+			name:     "Empty source",
+			source:   &argoappv1.ApplicationSource{},
+			expected: &argoappv1.ApplicationSource{},
+		},
+		{
+			name: "Empty Helm",
+			source: &argoappv1.ApplicationSource{
+				Helm: &argoappv1.ApplicationSourceHelm{},
+			},
+			expected: &argoappv1.ApplicationSource{},
+		},
+		{
+			name: "Helm with Values",
+			source: &argoappv1.ApplicationSource{
+				Helm: &argoappv1.ApplicationSourceHelm{
+					Values: "some: value",
+				},
+			},
+			expected: &argoappv1.ApplicationSource{
+				Helm: &argoappv1.ApplicationSourceHelm{
+					Values: "some: value",
+				},
+			},
+		},
+		{
+			name: "Helm with ValuesObject",
+			source: &argoappv1.ApplicationSource{
+				Helm: &argoappv1.ApplicationSourceHelm{
+					ValuesObject: &runtime.RawExtension{
+						Raw: []byte("some: value"),
+					},
+				},
+			},
+			expected: &argoappv1.ApplicationSource{
+				Helm: &argoappv1.ApplicationSourceHelm{
+					ValuesObject: &runtime.RawExtension{
+						Raw: []byte("some: value"),
+					},
+				},
+			},
+		},
+		{
+			name: "Helm with ValuesObject and Values",
+			source: &argoappv1.ApplicationSource{
+				Helm: &argoappv1.ApplicationSourceHelm{
+					Values: "some: value",
+					ValuesObject: &runtime.RawExtension{
+						Raw: []byte("some: value"),
+					},
+				},
+			},
+			expected: &argoappv1.ApplicationSource{
+				Helm: &argoappv1.ApplicationSourceHelm{
+					ValuesObject: &runtime.RawExtension{
+						Raw: []byte("some: value"),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			NormalizeSource(tc.source)
+			assert.Equal(t, tc.expected, tc.source)
 		})
 	}
 }
