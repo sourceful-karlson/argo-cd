@@ -393,8 +393,5 @@ func TestKustomizeBuildPatches(t *testing.T) {
 
 	assert.Equal(t, found, true)
 	assert.Nil(t, err)
-	assert.Equal(t, port, int(443))
-
-	fmt.Println(port)
-
+	assert.Equal(t, port, int64(443))
 }
