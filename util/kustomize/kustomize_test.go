@@ -360,7 +360,7 @@ func TestKustomizeBuildPatches(t *testing.T) {
 	kustomizeSource := v1alpha1.ApplicationSourceKustomize{
 		Patches: []v1alpha1.KustomizePatch{
 			{
-				Patch: `[ { "op": "replace", "path": "/spec/template/spec/containers/0/ports/0/containerPort", "value": 443 } ]`,
+				Patch: `[ { "op": "replace", "path": "/spec/template/spec/containers/0/ports/0/containerPort", "value": 443 },  { "op": "replace", "path": "/spec/template/spec/containers/0/name", "value": "test" }]`,
 				Target: &v1alpha1.KustomizeSelector{
 					KustomizeResId: v1alpha1.KustomizeResId{
 						KustomizeGvk: v1alpha1.KustomizeGvk{
@@ -394,4 +394,12 @@ func TestKustomizeBuildPatches(t *testing.T) {
 	assert.Equal(t, found, true)
 	assert.Nil(t, err)
 	assert.Equal(t, port, int64(443))
+
+	name, found, err := unstructured.NestedString(
+		containers[0].(map[string]interface{}),
+		"name",
+	)
+	assert.Equal(t, found, true)
+	assert.Nil(t, err)
+	assert.Equal(t, name, "test")
 }
