@@ -22,6 +22,7 @@ const kustomization2a = "kustomization_yml"
 const kustomization2b = "Kustomization"
 const kustomization3 = "force_common"
 const kustomization4 = "custom_version"
+const kustomization5 = "patches"
 
 func testDataDir(tb testing.TB, testData string) (string, error) {
 	res := tb.TempDir()
@@ -349,4 +350,33 @@ func TestKustomizeCustomVersion(t *testing.T) {
 	content, err := os.ReadFile(envOutputFile)
 	assert.Nil(t, err)
 	assert.Equal(t, "ARGOCD_APP_NAME=argo-cd-tests\n", string(content))
+}
+
+func TestKustomizePatches(t *testing.T) {
+	ask := v1alpha1.ApplicationSourceKustomize{
+		Patches: []v1alpha1.KustomizePatch{
+			{
+				Patch: `|-
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 443`,
+				Target: &v1alpha1.KustomizeSelector{
+					KustomizeResId: v1alpha1.KustomizeResId{
+						KustomizeGvk: v1alpha1.KustomizeGvk{
+							Kind: "Deployment",
+						},
+						Name: "nginx-deployment",
+					},
+				},
+			},
+		},
+	}
+
+	appPath, err := testDataDir(t, kustomization5)
+	assert.Nil(t, err)
+	kustomize := NewKustomizeApp(appPath, git.NopCreds{}, "", "")
+	objs, images, err := kustomize.Build(&ask, nil, nil)
+
+	fmt.Println(objs)
+	fmt.Println(images)
 }
